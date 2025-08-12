@@ -39,7 +39,6 @@ Bool isMatrixFormat(char *arg);
 Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode);
 Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest);
 
-Bool handleRtsOpp(void);
 void handleStopOpp(void);
 
 #endif

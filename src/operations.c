@@ -76,7 +76,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
     switch (opp->opCode)
     {
     case 14:
-        /* code */
+        encodeInstruction(opp->opCode,-1,-1,NULL,NULL);
         break;
 
     /* stop */
@@ -154,11 +154,6 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
     return FALSE;
 }
 
-
-
-Bool handleRtsOpp(void){
-    return 0;
-}
 
 void handleStopOpp(void){
     printf("Stopping the program...\n");
