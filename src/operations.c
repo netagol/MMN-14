@@ -5,18 +5,18 @@ Operation opTable[OP_TABLE_SIZE] = {
     {"cmp",  1,  2, {0,1,2,3},{0, 1,2,3}},
     {"add",  2,  2, {0,1,2,3},{1,2,3}},
     {"sub",  3,  2, {0,1,2,3},{1,2,3}},
-    {"not",  4,  1, NULL     ,{1,2,3}},
-    {"clr",  5,  1, NULL     ,{1,2,3}},
+    {"not",  4,  1, {-1}     ,{1,2,3}},
+    {"clr",  5,  1, {-1}     ,{1,2,3}},
     {"lea",  6,  2, {1,2}    ,{1,2,3}},
-    {"inc",  7,  1, NULL     ,{1,2,3}},
-    {"dec",  8,  1, NULL     ,{1,2,3}},
-    {"jmp",  9,  1, NULL     ,{1,2,3}},
-    {"bne",  10, 1, NULL     ,{1,2,3}},
-    {"red",  11, 1, NULL     ,{1,2,3}},
-    {"prn",  12, 1, NULL     ,{0,1,2,3}},
-    {"jsr",  13, 1, NULL     ,{1,2,3}},
-    {"rts",  14, 0, NULL     ,NULL},
-    {"stop", 15, 0, NULL     ,NULL}
+    {"inc",  7,  1, {-1}    ,{1,2,3}},
+    {"dec",  8,  1, {-1}     ,{1,2,3}},
+    {"jmp",  9,  1, {-1}     ,{1,2,3}},
+    {"bne",  10, 1, {-1}     ,{1,2,3}},
+    {"red",  11, 1, {-1}     ,{1,2,3}},
+    {"prn",  12, 1, {-1}     ,{0,1,2,3}},
+    {"jsr",  13, 1, {-1}     ,{1,2,3}},
+    {"rts",  14, 0, {-1}     ,{-1}},
+    {"stop", 15, 0, {-1}     ,{-1}}
 };
 
 
@@ -105,13 +105,13 @@ Bool handleOneArgOpp(Operation *opp, char *line){
     }
 
     destAddMode = getAddressingMode(dest);
-    if (!isValidAddrMode(opp->opCode, NULL,destAddMode))
+    if (!isValidAddrMode(opp->opCode, -1,destAddMode))
     {
         yieldError("illegalAddressingMode", opp->name);
         return FALSE;
     }
 
-    if(encodeInstruction(opp->opCode,NULL, destAddMode, NULL, dest)){
+    if(encodeInstruction(opp->opCode,-1, destAddMode, NULL, dest)){
         return TRUE;
     }
 
@@ -241,10 +241,6 @@ Bool parseTwoOperands(char *line, char **src, char **dest){
 
 
 int getAddressingMode(char *arg){
-    Label *temp;
-    char argTemp[strlen(arg)];
-    char *rest;
-
     if(arg[0] == 'r' && (arg[1] >= '0' && arg[1] <= '7')) return REGISTER_ADDRESSING;
 
     if(arg[0] == '#') return INSTANT_ADDRESSING;
@@ -284,8 +280,8 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
     op = getOppByOpcode(opCode);
 
     if(op != NULL){
-        if(op->leagalSrcModes != NULL){
-            while ((op->leagalSrcModes[i]) != NULL)
+        if(op->leagalSrcModes[0] != INVALID_ADDRESSING){
+            while ((op->leagalSrcModes[i]))
             {
                 if(srcAddrMode == op->leagalSrcModes[i]){
                     srcValid = TRUE;
@@ -294,14 +290,14 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
                 i++;
             }
         }else{
-            if(srcAddrMode == NULL){
+            if(srcAddrMode == INVALID_ADDRESSING){
                 srcValid = TRUE;
             }
         }
 
-        if((op->leagalDestModes != NULL)){
+        if((op->leagalDestModes[0] != INVALID_ADDRESSING)){
             i = 0;
-            while ((op->leagalDestModes[i]) != NULL)
+            while ((op->leagalDestModes[i]))
             {
                 if(destAddrMode == op->leagalDestModes[i]){
                     destValid = TRUE;
@@ -310,7 +306,7 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
                 i++;
             }
         }else{
-            if(destAddrMode == NULL){
+            if(destAddrMode == INVALID_ADDRESSING){
                 destValid = TRUE;
             }
         }
@@ -333,7 +329,7 @@ Operation *getOppByOpcode(int opCode){
     for (i = 0; i < OP_TABLE_SIZE; i++){
         if(opTable[i].opCode == opCode){
             op = &opTable[i];
-            return op;
+            break;
         }
     }
     return op;

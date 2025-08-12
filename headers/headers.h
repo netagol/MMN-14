@@ -10,10 +10,10 @@
 #include "globals.h"
 #include "assembler.h"
 #include "utils.h"
+#include "tables.h"
 #include "operations.h"
 #include "errors.h"
 #include "labels.h"
-#include "tables.h"
 #include "preProcessor.h"
 #include "firstRun.h"
 

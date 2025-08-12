@@ -191,7 +191,7 @@ Bool allocInstructionImg(int srcAddMode, int destAddMode){
     ) numOfWords++;
     else if(destAddMode == MATRIX_ADDRESSING) numOfWords += 2;
     
-    if(getIC == IC_START){
+    if(getIC() == IC_START){
         if((instructionsImage = malloc(numOfWords * sizeof(short int))) == NULL){
             yieldError("memoryAllocationFailed");
             return FALSE;
@@ -225,7 +225,7 @@ static unsigned short build_reg_word(int srcReg, int destReg){
     return w;
 }
 
-Bool addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC){
+void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC){
     unsigned short w; 
     w = (val & CLEAR_ARE_MASK) | (are & TWO_BIT_MASK);
     img[*IC - IC_START] = w;
