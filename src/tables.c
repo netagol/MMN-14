@@ -2,6 +2,7 @@
 
 DataImageEntry *dataImage = NULL;
 int dataImageCap;
+unsigned short *instructionsImage;
 
 Bool initiateDataImage(void){
     dataImage = (DataImageEntry *)calloc(INITIAL_CAPACITY,sizeof(DataImageEntry));
@@ -171,6 +172,63 @@ void printDataImg(void){
     printf("\n");
 }
 
-Bool allocInstructionImg(void){
-    return;
+Bool allocInstructionImg(int srcAddMode, int destAddMode){
+    int numOfWords = 1;
+
+    /*src*/
+    if(
+        srcAddMode == INSTANT_ADDRESSING || 
+        srcAddMode == DIRECT_ADDRESSING ||
+        srcAddMode == REGISTER_ADDRESSING
+    ) numOfWords++;
+    else if ( srcAddMode == MATRIX_ADDRESSING) numOfWords += 2;
+
+    /*dest*/
+    if (
+        destAddMode == INSTANT_ADDRESSING ||
+        destAddMode == DIRECT_ADDRESSING ||
+        srcAddMode == REGISTER_ADDRESSING
+    ) numOfWords++;
+    else if(destAddMode == MATRIX_ADDRESSING) numOfWords += 2;
+    
+    if(getIC == IC_START){
+        if((instructionsImage = malloc(numOfWords * sizeof(short int))) == NULL){
+            yieldError("memoryAllocationFailed");
+            return FALSE;
+        }
+    }else{
+        if((instructionsImage = realloc(instructionsImage, (IC + numOfWords) * sizeof(short int))) == NULL){
+            yieldError("memoryAllocationFailed");
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
+
+static unsigned short build_first_word(int opCode, int srcMode, int dstMode, AREFlag are){
+    unsigned short w = 0;
+
+    w |= ((opCode & FOUR_BIT_MASK) << 6);
+    w |= ((srcMode & TWO_BIT_MASK) << 4);
+    w |= ((dstMode & TWO_BIT_MASK) << 2);
+    w |= (are & TWO_BIT_MASK);
+
+    return w;
+}
+
+static unsigned short build_reg_word(int srcReg, int destReg){
+    unsigned short w = 0;
+
+    if(srcReg >= 0) w |= ((srcReg & TWO_BIT_MASK) << 2);
+    if(destReg >= 0) w |= ((destReg & TWO_BIT_MASK) << 6);
+
+    return w;
+}
+
+Bool addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC){
+    unsigned short w; 
+    w = (val & CLEAR_ARE_MASK) | (are & TWO_BIT_MASK);
+    img[*IC - IC_START] = w;
+    (*IC)++;
+}
+

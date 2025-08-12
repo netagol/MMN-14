@@ -46,7 +46,8 @@ Err errorTable[] = {
     {"unexpectedChrsAfterCommand","Unexpected chars %s after command %s"},
     {"invalidArgsForCommand", "Invalid argument(s) for command %s"},
     {"labelNotFound", "Label %s was not found"},
-    {"illegalAddressingMode", "Illeagal addressing mode for operation %s"}
+    {"illegalAddressingMode", "Illeagal addressing mode for operation %s"},
+    {"noOperandFound", "Missing operand"}
 
 };
 

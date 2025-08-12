@@ -32,6 +32,7 @@ Bool handleOneArgOpp(Operation *opp, char *line);
 Bool handleTwoArgsOpp(Operation *opp, char *line);
 
 Bool parseOneOperand(char *line, char **dest);
+Bool parseTwoOperands(char *line, char **src, char **dest);
 
 int getAddressingMode(char *arg);
 Bool isMatrixFormat(char *arg);

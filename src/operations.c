@@ -121,8 +121,40 @@ Bool handleOneArgOpp(Operation *opp, char *line){
 }
 
 Bool handleTwoArgsOpp(Operation *opp, char *line){
-    return 0;
+    char *src, *dest, *lineCopy;
+    int srcAddMode, destAddMode;
+
+    if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        return FALSE;
+    }
+
+    strcpy(lineCopy,line);
+
+    if(!parseTwoOperands(lineCopy, &src, &dest)){
+        yieldError("invalidArgsForCommand", opp->name);
+        free(lineCopy);
+        return FALSE;
+    }
+
+    srcAddMode = getAddressingMode(src);
+    destAddMode = getAddressingMode(dest);
+
+    if(!isValidAddrMode(opp->opCode, srcAddMode, destAddMode)){
+        yieldError("illegalAddressingMode", opp->name);
+        free(lineCopy);
+        return FALSE;
+    }
+
+    if(encodeInstruction(opp->opCode,srcAddMode, destAddMode, src, dest)){
+        free(lineCopy);
+        return TRUE;
+    }
+
+    return FALSE;
 }
+
+
 
 Bool handleRtsOpp(void){
     return 0;
@@ -157,8 +189,63 @@ Bool parseOneOperand(char *line, char **dest){
 
     strcpy(*dest,arg);
 
+    free(lineCopy);
+
     return TRUE;
 }
+
+Bool parseTwoOperands(char *line, char **src, char **dest){
+    char *lineCopy, *tempSrc, *tempDest;
+
+    if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        return FALSE;
+    }
+
+    strcpy(lineCopy,line);
+
+    tempSrc = strtok(lineCopy, " \t"); /*remove the command*/
+    if((tempSrc = strtok(NULL, ",")) == NULL){
+        yieldError("noOperandFound");
+        free(lineCopy);
+        return FALSE;
+    }
+
+    if((tempDest = strtok(NULL," \n\t")) == NULL){
+        yieldError("noOperandFound");
+        free(lineCopy);
+        return FALSE;
+    }
+
+    if(((*src) = malloc(strlen(tempSrc) * sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        free(lineCopy);
+        return FALSE;
+    }
+
+    if(((*dest) = malloc(strlen(tempDest) * sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        free(*src);
+        free(lineCopy);
+        return FALSE;
+    }
+
+    trimWhiteSpaces(&tempSrc);
+    trimWhiteSpaces(&tempDest);
+
+    strcpy(*src,tempSrc);
+    strcpy(*dest,tempDest);
+
+    if(src != NULL && dest != NULL){
+        free(lineCopy);
+        return TRUE;
+    }
+
+    free(lineCopy);
+    return FALSE;
+}
+
+
 
 int getAddressingMode(char *arg){
     Label *temp;
@@ -260,6 +347,14 @@ Operation *getOppByOpcode(int opCode){
 }
 
 Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest){
-    
+
+    unsigned short firstWord;
+
+    if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
+
+    firstWord = build_first_word(opCode,srcAddMode, destAddMode, ARE_A);
+    addWordToInstractionImg(firstWord,ARE_A,&instructionsImage,&IC);
+
+    return TRUE;
 
 }

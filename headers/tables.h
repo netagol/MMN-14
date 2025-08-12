@@ -4,6 +4,9 @@
 #include "headers.h"
 
 #define INITIAL_CAPACITY 1
+#define FOUR_BIT_MASK 15 /*1111*/
+#define TWO_BIT_MASK 3 /*11*/
+#define CLEAR_ARE_MASK 4092 /*1111 1111 1100*/
 
 
 typedef struct DataImageEntry_s
@@ -12,7 +15,7 @@ typedef struct DataImageEntry_s
     short int word;
 }DataImageEntry;
 
-extern unsigned short instructionsImage[];
+extern unsigned short *instructionsImage;
 extern DataImageEntry *dataImage;
 extern int dataImageCap;
 
@@ -27,6 +30,11 @@ Bool addStrToDataImage(char *line);
 Bool addMatToDataImage(int matSize, int argsCount, int *matNums);
 Bool initiateDataImage(void);
 void printDataImg(void);
+
+Bool allocInstructionImg(int srcAddMode, int destAddMode);
+unsigned short build_first_word(int opCode, int srcMode, int dstMode, AREFlag are);
+unsigned short build_reg_word(int srcReg, int destReg);
+void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC);
 
 
 #endif
