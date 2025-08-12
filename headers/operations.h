@@ -22,7 +22,7 @@ typedef enum AddMode{
     DIRECT_ADDRESSING = 1,
     MATRIX_ADDRESSING = 2,
     REGISTER_ADDRESSING = 3,
-    INVALID_ADDRESSING = 4
+    INVALID_ADDRESSING = -1
 } AddMode;
 
 Operation *getOperationByName(char *opName);

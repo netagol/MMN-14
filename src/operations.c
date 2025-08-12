@@ -105,13 +105,13 @@ Bool handleOneArgOpp(Operation *opp, char *line){
     }
 
     destAddMode = getAddressingMode(dest);
-    if (!isValidAddrMode(opp->opCode, -1,destAddMode))
+    if (!isValidAddrMode(opp->opCode, INVALID_ADDRESSING ,destAddMode))
     {
         yieldError("illegalAddressingMode", opp->name);
         return FALSE;
     }
 
-    if(encodeInstruction(opp->opCode,-1, destAddMode, NULL, dest)){
+    if(encodeInstruction(opp->opCode,INVALID_ADDRESSING, destAddMode, NULL, dest)){
         return TRUE;
     }
 
