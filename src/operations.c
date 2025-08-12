@@ -66,7 +66,6 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
 
     strcpy(lineCopy,line);
 
-
     rest = strtok(lineCopy, " \n\t"); /*extract the command*/
     if((rest = strtok(NULL, " \n\t")) != NULL){
         yieldError("unexpectedChrsAfterCommand", rest, opp->name);
@@ -76,18 +75,17 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
     switch (opp->opCode)
     {
     case 14:
-        encodeInstruction(opp->opCode,-1,-1,NULL,NULL);
-        break;
+        if(encodeInstruction(opp->opCode,-1,-1,NULL,NULL)) return TRUE;
 
     /* stop */
     case 15: handleStopOpp();
     
     default:
-        break;
+        yieldError("unrecognizedOppCode", opp->opCode);
+        return FALSE;
     }
 
-    return 0;
-    
+    return FALSE;
 }
 
 Bool handleOneArgOpp(Operation *opp, char *line){
