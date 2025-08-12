@@ -32,8 +32,8 @@ Bool initiateDataImage(void);
 void printDataImg(void);
 
 Bool allocInstructionImg(int srcAddMode, int destAddMode);
-static unsigned short build_first_word(int opCode, int srcMode, int dstMode, AREFlag are);
-static unsigned short build_reg_word(int srcReg, int destReg);
+unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are);
+unsigned short buildRegWord(int srcReg, int destReg);
 void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC);
 
 

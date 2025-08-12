@@ -7,7 +7,7 @@ HEADERS = ../headers
 CC = gcc
 CFLAGS = -ansi -Wall -pedantic
 GLOBAL_DEPS = $(HEADERS)/globals.h
-EXE_DEPS = $(BUILD)/operations.o $(BUILD)/preProcessor.o $(BUILD)/utils.o $(BUILD)/tests.o $(BUILD)/errors.o $(BUILD)/labels.o $(BUILD)/tables.o $(BUILD)/firstRun.o
+EXE_DEPS = $(BUILD)/operations.o $(BUILD)/tables.o $(BUILD)/preProcessor.o $(BUILD)/utils.o $(BUILD)/tests.o $(BUILD)/errors.o $(BUILD)/labels.o $(BUILD)/firstRun.o
 
 #executables
 tests: $(EXE_DEPS) $(GLOBAL_DEPS)

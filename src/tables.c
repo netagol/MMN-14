@@ -205,7 +205,7 @@ Bool allocInstructionImg(int srcAddMode, int destAddMode){
     return TRUE;
 }
 
-static unsigned short build_first_word(int opCode, int srcMode, int dstMode, AREFlag are){
+unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are){
     unsigned short w = 0;
 
     w |= ((opCode & FOUR_BIT_MASK) << 6);
@@ -216,7 +216,7 @@ static unsigned short build_first_word(int opCode, int srcMode, int dstMode, ARE
     return w;
 }
 
-static unsigned short build_reg_word(int srcReg, int destReg){
+unsigned short buildRegWord(int srcReg, int destReg){
     unsigned short w = 0;
 
     if(srcReg >= 0) w |= ((srcReg & TWO_BIT_MASK) << 2);

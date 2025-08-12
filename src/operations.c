@@ -341,7 +341,7 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
 
     if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
 
-    firstWord = build_first_word(opCode,srcAddMode, destAddMode, ARE_A);
+    firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
     addWordToInstractionImg(firstWord,ARE_A,&instructionsImage,&IC);
 
     return TRUE;
