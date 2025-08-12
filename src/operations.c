@@ -324,15 +324,13 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
 
 Operation *getOppByOpcode(int opCode){
     int i;
-    Operation *op = (Operation *)NULL;
 
-    for (i = 0; i < OP_TABLE_SIZE; i++){
+    for(i = 0; i < OP_TABLE_SIZE; i++){
         if(opTable[i].opCode == opCode){
-            op = &opTable[i];
-            break;
+            return &opTable[i];
         }
     }
-    return op;
+    return NULL;
 }
 
 Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest){
@@ -342,7 +340,7 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
     if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
 
     firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
-    addWordToInstractionImg(firstWord,ARE_A,&instructionsImage,&IC);
+    addWordToInstractionImg(firstWord,ARE_A,instructionsImage,&IC);
 
     return TRUE;
 
