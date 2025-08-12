@@ -171,4 +171,6 @@ void printDataImg(void){
     printf("\n");
 }
 
-
+Bool allocInstructionImg(void){
+    return;
+}
