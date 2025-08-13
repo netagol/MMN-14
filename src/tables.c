@@ -216,7 +216,7 @@ unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are)
     return w;
 }
 
-unsigned short buildRegWord(int srcReg, int destReg){
+static unsigned short buildRegWord(int srcReg, int destReg){
     unsigned short w = 0;
 
     if(srcReg >= 0) w |= ((srcReg & TWO_BIT_MASK) << 2);

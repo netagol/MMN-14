@@ -147,7 +147,7 @@ Label *getLabelByName(char *name){
 
     while (temp != NULL)
     {
-        if (!strcmp(temp->name,name)) return temp;
+        if(!strcmp(temp->name,name)) return temp;
         temp = temp->next;
     }
 

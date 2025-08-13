@@ -7,6 +7,9 @@
 #define LAST_REG_NUM 7
 #define FIRST_REG_NUM 1
 #define IC_START 100
+#define FIRST_PASS 1
+#define SECOND_PASS 2
+#define MAX_SHORT_NUM 32768
 
 extern int DC, IC, rowNum;
 extern char currentFileName[MAX_FILE_NAME];

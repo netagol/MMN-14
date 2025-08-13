@@ -37,8 +37,11 @@ Bool parseTwoOperands(char *line, char **src, char **dest);
 int getAddressingMode(char *arg);
 Bool isMatrixFormat(char *arg);
 Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode);
-Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest);
+Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest, int pass);
 Operation *getOppByOpcode(int opCode);
+int parseRegister(char *arg);
+long parseInstant(char *arg);
+Bool resolveLabel(char *arg, long *addr, Bool *isExt);
 
 void handleStopOpp(void);
 

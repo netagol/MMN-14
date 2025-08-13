@@ -75,7 +75,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
     switch (opp->opCode)
     {
     case 14:
-        if(encodeInstruction(opp->opCode,-1,-1,NULL,NULL)) return TRUE;
+        if(encodeInstruction(opp->opCode,-1,-1,NULL,NULL, FIRST_PASS)) return TRUE;
 
     /* stop */
     case 15: handleStopOpp();
@@ -111,7 +111,7 @@ Bool handleOneArgOpp(Operation *opp, char *line){
         return FALSE;
     }
 
-    if(encodeInstruction(opp->opCode,INVALID_ADDRESSING, destAddMode, NULL, dest)){
+    if(encodeInstruction(opp->opCode,INVALID_ADDRESSING, destAddMode, NULL, dest, FIRST_PASS)){
         return TRUE;
     }
 
@@ -144,7 +144,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
         return FALSE;
     }
 
-    if(encodeInstruction(opp->opCode,srcAddMode, destAddMode, src, dest)){
+    if(encodeInstruction(opp->opCode,srcAddMode, destAddMode, src, dest, FIRST_PASS)){
         free(lineCopy);
         return TRUE;
     }
@@ -333,15 +333,68 @@ Operation *getOppByOpcode(int opCode){
     return NULL;
 }
 
-Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest){
+Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, char *dest, int pass){
 
-    unsigned short firstWord;
+    unsigned short firstWord, word;
+    long val, addr;
+    int s, d;
+    Bool isExt;
+    s = d = 0;
 
     if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
 
     firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
-    addWordToInstractionImg(firstWord,ARE_A,instructionsImage,&IC);
+    addWordToInstractionImg(firstWord, ARE_A, instructionsImage, &IC);
+
+    /*Extra words*/
+
+    /*Both operands are registers*/
+    if(srcAddMode == REGISTER_ADDRESSING && destAddMode == REGISTER_ADDRESSING){
+        s = parseRegister(src);
+        d = parseRegister(dest);
+        word = buildRegWord(s,d);
+        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
+        return TRUE;
+    }
+
+    /*Source Operand*/
+    if(srcAddMode == INSTANT_ADDRESSING){
+        val = parseInstant(src);
+        if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
+            yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
+            return FALSE;
+        }
+        word = (unsigned short)val;
+        addWordToInstractionImg(word << 2, ARE_A, instructionsImage, &IC);
+    }else if(srcAddMode == DIRECT_ADDRESSING){
+        if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage, &IC);
+    }else if(srcAddMode == MATRIX_ADDRESSING){
+        
+    }
+
 
     return TRUE;
 
+}
+
+int parseRegister(char *arg){
+    return atoi(arg[1]);
+}
+
+long parseInstant(char *arg){
+    return atol(arg+1); /*skip the # char*/
+}
+
+Bool resolveLabel(char *arg, long *addr, Bool *isExt){
+    Label *temp;
+        if(isLabelName(arg)){
+            if((temp = getLabelByName(arg)) == NULL){
+                return FALSE;
+            }else{
+                *addr = temp->address;
+                *isExt = temp->type == EXTERN_SYMBOL ? TRUE : FALSE;
+                return TRUE;
+            }
+        }else return FALSE;
 }
