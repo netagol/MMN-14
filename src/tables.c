@@ -172,6 +172,19 @@ void printDataImg(void){
     printf("\n");
 }
 
+void printInstructionImg(void){
+    int i;
+
+    printf("Instruction image: IC: %d\n", IC);
+
+    for(i = IC_START; i < IC; i++){
+        printf("Address: %4d | word: ",i);
+        printBinary(instructionsImage[i]);
+        printf("\n");
+    }
+    printf("\n");
+}
+
 Bool allocInstructionImg(int srcAddMode, int destAddMode){
     int numOfWords = 1;
 
@@ -216,7 +229,7 @@ unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are)
     return w;
 }
 
-static unsigned short buildRegWord(int srcReg, int destReg){
+unsigned short buildRegWord(int srcReg, int destReg){
     unsigned short w = 0;
 
     if(srcReg >= 0) w |= ((srcReg & TWO_BIT_MASK) << 2);
@@ -229,6 +242,6 @@ void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *im
     unsigned short w; 
     w = (val & CLEAR_ARE_MASK) | (are & TWO_BIT_MASK);
     img[*IC - IC_START] = w;
-    (*IC)++;
+    increaseIC(1);
 }
 

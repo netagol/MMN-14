@@ -48,7 +48,8 @@ Err errorTable[] = {
     {"labelNotFound", "Label %s was not found"},
     {"illegalAddressingMode", "Illeagal addressing mode for operation %s"},
     {"noOperandFound", "Missing operand"},
-    {"unrecognizedOppCode", "Unrecognized OpCode %d"}
+    {"unrecognizedOppCode", "Unrecognized OpCode %d"},
+    {"invalidMatrixRegister", "Invalid matrix register, the matrix register %s is not a vaild register"}
 
 };
 

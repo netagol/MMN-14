@@ -30,6 +30,7 @@ Bool addStrToDataImage(char *line);
 Bool addMatToDataImage(int matSize, int argsCount, int *matNums);
 Bool initiateDataImage(void);
 void printDataImg(void);
+void printInstructionImg(void);
 
 Bool allocInstructionImg(int srcAddMode, int destAddMode);
 unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are);

@@ -72,18 +72,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
         return FALSE;
     }
 
-    switch (opp->opCode)
-    {
-    case 14:
-        if(encodeInstruction(opp->opCode,-1,-1,NULL,NULL, FIRST_PASS)) return TRUE;
-
-    /* stop */
-    case 15: handleStopOpp();
-    
-    default:
-        yieldError("unrecognizedOppCode", opp->opCode);
-        return FALSE;
-    }
+    addWordToInstractionImg(IC,ARE_A,instructionsImage, &IC);
 
     return FALSE;
 }
@@ -152,11 +141,6 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
     return FALSE;
 }
 
-
-void handleStopOpp(void){
-    printf("Stopping the program...\n");
-    exit(EXIT_SUCCESS);
-}
 
 Bool parseOneOperand(char *line, char **dest){
     char *lineCopy, *arg;
@@ -320,6 +304,8 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
     }else{
         return FALSE;
     } 
+
+    return FALSE;
 }
 
 Operation *getOppByOpcode(int opCode){
@@ -337,8 +323,9 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
 
     unsigned short firstWord, word;
     long val, addr;
-    int s, d;
+    int s, d, rowReg, colReg;
     Bool isExt;
+    char label[MAX_LABEL_NAME];
     s = d = 0;
 
     if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
@@ -370,7 +357,19 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
         if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
         addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage, &IC);
     }else if(srcAddMode == MATRIX_ADDRESSING){
-        
+        /*first word - address*/
+        if(!parseMatrix(src, label, &rowReg, &colReg)) return FALSE;
+        if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage, &IC);
+
+        /*second word - registers*/
+        word = buildRegWord(rowReg, colReg);
+        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
+
+    }else if(srcAddMode == REGISTER_ADDRESSING){
+        s = parseRegister(src);
+        word = buildRegWord(s, INVALID_ADDRESSING);
+        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
     }
 
 
@@ -379,7 +378,7 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
 }
 
 int parseRegister(char *arg){
-    return atoi(arg[1]);
+    return atoi((arg+1));
 }
 
 long parseInstant(char *arg){
@@ -390,6 +389,7 @@ Bool resolveLabel(char *arg, long *addr, Bool *isExt){
     Label *temp;
         if(isLabelName(arg)){
             if((temp = getLabelByName(arg)) == NULL){
+                yieldError("labelNotFound", arg);
                 return FALSE;
             }else{
                 *addr = temp->address;
@@ -397,4 +397,70 @@ Bool resolveLabel(char *arg, long *addr, Bool *isExt){
                 return TRUE;
             }
         }else return FALSE;
+}
+
+Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
+    char *firstOpen, *firstClose, *secondOpen, *secondClose;
+    int labelLen;
+    char regStr[5];
+
+    if(!arg) return FALSE;
+
+    firstOpen = strchr(arg, '[');
+    if (!firstOpen) {
+        yieldError("invalidArgsForCommand",arg);
+        return FALSE;
+    }
+
+    firstClose = strchr(firstOpen, ']');
+    if (!firstClose){
+        yieldError("invalidArgsForCommand",arg);
+        return FALSE;
+    }
+
+    secondOpen = strchr(firstClose, '[');
+    if (!secondOpen) {
+        yieldError("invalidArgsForCommand",arg);
+        return FALSE;
+    }
+
+    secondClose = strchr(secondOpen, ']');
+    if (!secondClose) {
+        yieldError("invalidArgsForCommand",arg);
+        return FALSE;
+    }
+
+    labelLen = firstOpen - arg;
+    if(labelLen <= 0 || labelLen > MAX_LABEL_NAME) {
+        yieldError("invalidArgsForCommand",arg);
+        return FALSE;
+    }
+
+    /*extract label name*/
+    strncpy(label, arg, labelLen);
+    label[labelLen] = '\0';
+
+    /*extract first reg*/
+    strncpy(regStr,firstOpen +1, firstClose - firstOpen - 1);
+    regStr[firstClose - firstOpen - 1] = '\0';
+    
+    if(regStr[0] != 'r' || regStr[1] < '0' || regStr[1] > '7' || regStr[2] != '\0'){
+        yieldError("invalidMatrixRegister", regStr);
+        return FALSE;
+    }
+
+    *rowReg = regStr[1] - '0';
+
+    /*extract second reg*/
+    strncpy(regStr,secondOpen +1, secondClose - secondOpen - 1);
+    regStr[secondClose - secondOpen - 1] = '\0';
+    
+    if(regStr[0] != 'r' || regStr[1] < '0' || regStr[1] > '7' || regStr[2] != '\0'){
+        yieldError("invalidMatrixRegister", regStr);
+        return FALSE;
+    }
+
+    *colReg = regStr[1] - '0';
+
+    return TRUE;
 }

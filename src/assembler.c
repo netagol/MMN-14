@@ -4,7 +4,7 @@
 int main(void){
 
     char asFileName[MAX_FILE_NAME];
-    strcpy(asFileName,"tests/dataimgtest.as");
+    strcpy(asFileName,"tests/demoInput.as");
     if (!processFile(asFileName))
     {
         yieldError("fileNotProcessed",asFileName);
@@ -37,6 +37,7 @@ Bool processFile(char *asFileName){
                 rewindRowNum();
                 firstRun(amFile);
                 printDataImg();
+                printInstructionImg();
             }else{
                 fclose(amFile);
                 remove(amFileName);

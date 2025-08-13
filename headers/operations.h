@@ -42,6 +42,7 @@ Operation *getOppByOpcode(int opCode);
 int parseRegister(char *arg);
 long parseInstant(char *arg);
 Bool resolveLabel(char *arg, long *addr, Bool *isExt);
+Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg);
 
 void handleStopOpp(void);
 
