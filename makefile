@@ -8,7 +8,7 @@ CC = gcc
 CFLAGS = -ansi -Wall -pedantic -g
 BIN = bin
 GLOBAL_DEPS = $(HEADERS)/globals.h
-EXE_DEPS = $(BUILD)/operations.o $(BUILD)/utils.o $(BUILD)/assembler.o $(BUILD)/preProcessor.o $(BUILD)/firstRun.o  $(BUILD)/errors.o $(BUILD)/labels.o $(BUILD)/tables.o
+EXE_DEPS = $(BUILD)/operations.o $(BUILD)/utils.o $(BUILD)/assembler.o $(BUILD)/preProcessor.o $(BUILD)/firstRun.o  $(BUILD)/errors.o $(BUILD)/labels.o $(BUILD)/tables.o $(BUILD)/secondRun.o
 
 # main target
 assembler: $(EXE_DEPS) $(GLOBAL_DEPS)
@@ -37,6 +37,9 @@ $(BUILD)/labels.o: $(SRC)/labels.c $(HEADERS)/labels.h $(GLOBAL_DEPS)
 
 $(BUILD)/tables.o: $(SRC)/tables.c $(HEADERS)/tables.h $(GLOBAL_DEPS)
 	$(CC) -c $(SRC)/tables.c $(CFLAGS) -o $@
+
+$(BUILD)/secondRun.o: $(SRC)/secondRun.c $(HEADERS)/secondRun.h $(GLOBAL_DEPS)
+	$(CC) -c $(SRC)/secondRun.c $(CFLAGS) -o $@
 
 clean:
 	rm -rf $(BUILD)/*.o $(BIN)/assembler
