@@ -27,10 +27,10 @@ typedef enum AddMode{
 } AddMode;
 
 Operation *getOperationByName(char *opName);
-Bool oppRouter(Operation *opp, char *line);
+Bool oppRouter(Operation *opp, char *line, int pass);
 Bool handleZeroArgsOpp(Operation *opp, char *line);
-Bool handleOneArgOpp(Operation *opp, char *line);
-Bool handleTwoArgsOpp(Operation *opp, char *line);
+Bool handleOneArgOpp(Operation *opp, char *line, int pass);
+Bool handleTwoArgsOpp(Operation *opp, char *line, int pass);
 
 Bool parseOneOperand(char *line, char **dest);
 Bool parseTwoOperands(char *line, char **src, char **dest);

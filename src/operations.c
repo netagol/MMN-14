@@ -39,7 +39,7 @@ Operation *getOperationByName(char *opName){
     return op;
 }
 
-Bool oppRouter(Operation *opp, char *line){
+Bool oppRouter(Operation *opp, char *line, int pass){
 
     printOperation(opp);
 
@@ -49,8 +49,8 @@ Bool oppRouter(Operation *opp, char *line){
     switch (opp->numOfArgs)
     {
     case 0: return handleZeroArgsOpp(opp, line);
-    case 1: return handleOneArgOpp(opp, line);
-    case 2: return handleTwoArgsOpp(opp, line);
+    case 1: return handleOneArgOpp(opp, line, pass);
+    case 2: return handleTwoArgsOpp(opp, line, pass);
     default:
             yieldError("unsupportedArgCount", opp->name);
             return FALSE;
@@ -79,7 +79,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
     return FALSE;
 }
 
-Bool handleOneArgOpp(Operation *opp, char *line){
+Bool handleOneArgOpp(Operation *opp, char *line, int pass){
     char *dest, *lineCopy;
     int destAddMode;
 
@@ -94,27 +94,32 @@ Bool handleOneArgOpp(Operation *opp, char *line){
     printf("2\n");
     if(!parseOneOperand(lineCopy,&dest)){
         yieldError("invalidArgsForCommand", opp->name);
+        free(lineCopy);
         return FALSE;
     }
     printf("3\n");
     if((destAddMode = getAddressingMode(dest)) == INVALID_ADDRESSING){
         yieldError("illegalAddressingMode", opp->name);
+        free(lineCopy);
         return FALSE;
     }
     if (!isValidAddrMode(opp->opCode, NULL_ADDRESSING ,destAddMode))
     {
         yieldError("illegalAddressingMode", opp->name);
+        free(lineCopy);
         return FALSE;
     }
     printf("4\n");
-    if(encodeInstruction(opp->opCode,NULL_ADDRESSING, destAddMode, NULL, dest, FIRST_PASS)){
+    if(encodeInstruction(opp->opCode,NULL_ADDRESSING, destAddMode, NULL, dest, pass)){
+        free(lineCopy);
         return TRUE;
     }
     printf("5\n");
+    free(lineCopy);
     return FALSE;
 }
 
-Bool handleTwoArgsOpp(Operation *opp, char *line){
+Bool handleTwoArgsOpp(Operation *opp, char *line, int pass){
     char *src, *dest, *lineCopy;
     int srcAddMode, destAddMode;
 
@@ -142,7 +147,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
         return FALSE;
     }
 
-    if(encodeInstruction(opp->opCode,srcAddMode, destAddMode, src, dest, FIRST_PASS)){
+    if(encodeInstruction(opp->opCode,srcAddMode, destAddMode, src, dest, pass)){
         free(lineCopy);
         return TRUE;
     }
@@ -369,91 +374,96 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
     char label[MAX_LABEL_NAME];
     s = d = val = addr =0;
 
-    printf("Inside encodeInstruction\n");
-    printf("1\n");
-    if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
-    printf("2\n");
-    firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
-    printf("3 first Word = %d\n", firstWord);
-    addWordToInstractionImg(firstWord, ARE_A, instructionsImage);
-    printf("4\n");
+    if(pass == FIRST_PASS){
+        printf("Inside encodeInstruction\n");
+        printf("1\n");
+        if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
+        printf("2\n");
+        firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
+        printf("3 first Word = %d\n", firstWord);
+        addWordToInstractionImg(firstWord, ARE_A, instructionsImage);
+        printf("4\n");
 
-    /*Extra words*/
+        /*Extra words*/
 
-    /*Both operands are registers*/
-    if(srcAddMode == REGISTER_ADDRESSING && destAddMode == REGISTER_ADDRESSING){
-        s = parseRegister(src);
-        d = parseRegister(dest);
-        word = buildRegWord(s,d);
-        addWordToInstractionImg(word, ARE_A, instructionsImage);
-        return TRUE;
-    }
-    printf("5\n");
-    /*Source Operand*/
-    if(srcAddMode == INSTANT_ADDRESSING){
-        val = parseInstant(src);
-        if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
-            yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
-            return FALSE;
+        /*Both operands are registers*/
+        if(srcAddMode == REGISTER_ADDRESSING && destAddMode == REGISTER_ADDRESSING){
+            s = parseRegister(src);
+            d = parseRegister(dest);
+            word = buildRegWord(s,d);
+            addWordToInstractionImg(word, ARE_A, instructionsImage);
+            return TRUE;
         }
-        word = (unsigned short)val;
-        addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
-    }else if(srcAddMode == DIRECT_ADDRESSING){
-        if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
-        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
-    }else if(srcAddMode == MATRIX_ADDRESSING){
-        printf("5.1\n");
-        /*first word - address*/
-        if(!parseMatrix(src, label, &rowReg, &colReg)) return FALSE;
-        printf("5.2 addr: %ld\n", addr);
-        if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-        printf("5.3, addr: %ld\n", addr);
-        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
-        printf("5.4\n");
+        printf("5\n");
+        /*Source Operand*/
+        if(srcAddMode == INSTANT_ADDRESSING){
+            val = parseInstant(src);
+            if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
+                yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
+                return FALSE;
+            }
+            word = (unsigned short)val;
+            addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
+        }else if(srcAddMode == DIRECT_ADDRESSING){
+            if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+            addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
+        }else if(srcAddMode == MATRIX_ADDRESSING){
+            printf("5.1\n");
+            /*first word - address*/
+            if(!parseMatrix(src, label, &rowReg, &colReg)) return FALSE;
+            printf("5.2 addr: %ld\n", addr);
+            if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            printf("5.3, addr: %ld\n", addr);
+            addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
+            printf("5.4\n");
 
-        /*second word - registers*/
-        word = buildRegWord(rowReg, colReg);
-        addWordToInstractionImg(word, ARE_A, instructionsImage);
+            /*second word - registers*/
+            word = buildRegWord(rowReg, colReg);
+            addWordToInstractionImg(word, ARE_A, instructionsImage);
 
-    }else if(srcAddMode == REGISTER_ADDRESSING){
-        s = parseRegister(src);
-        word = buildRegWord(s, INVALID_ADDRESSING);
-        addWordToInstractionImg(word, ARE_A, instructionsImage);
-    }
-
-    /*Destination Operand*/
-    if(destAddMode == INSTANT_ADDRESSING){
-        val = parseInstant(dest);
-        if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
-            yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
-            return FALSE;
+        }else if(srcAddMode == REGISTER_ADDRESSING){
+            s = parseRegister(src);
+            word = buildRegWord(s, INVALID_ADDRESSING);
+            addWordToInstractionImg(word, ARE_A, instructionsImage);
         }
-        word = (unsigned short)val;
-        addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
-    }else if(destAddMode == DIRECT_ADDRESSING){
-        if(!(resolveLabel(dest, &addr,&isExt))) return FALSE;
-        printf("direct addr: %ld\n", addr << 2);
-        printBinary((short)(addr << 2));
-        printf("\n");
-        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
-    }else if(destAddMode == MATRIX_ADDRESSING){
-        printf("5.1\n");
-        /*first word - address*/
-        if(!parseMatrix(dest, label, &rowReg, &colReg)) return FALSE;
-        printf("5.2 addr: %ld\n", addr);
-        if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-        printf("5.3, addr: %ld\n", addr);
-        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
-        printf("5.4\n");
 
-        /*second word - registers*/
-        word = buildRegWord(rowReg, colReg);
-        addWordToInstractionImg(word, ARE_A, instructionsImage);
+        /*Destination Operand*/
+        if(destAddMode == INSTANT_ADDRESSING){
+            val = parseInstant(dest);
+            if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
+                yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
+                return FALSE;
+            }
+            word = (unsigned short)val;
+            addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
+        }else if(destAddMode == DIRECT_ADDRESSING){
+            if(!(resolveLabel(dest, &addr,&isExt))) return FALSE;
+            printf("direct addr: %ld\n", addr << 2);
+            printBinary((short)(addr << 2));
+            printf("\n");
+            addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
+        }else if(destAddMode == MATRIX_ADDRESSING){
+            printf("5.1\n");
+            /*first word - address*/
+            if(!parseMatrix(dest, label, &rowReg, &colReg)) return FALSE;
+            printf("5.2 addr: %ld\n", addr);
+            if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            printf("5.3, addr: %ld\n", addr);
+            addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
+            printf("5.4\n");
 
-    }else if(destAddMode == REGISTER_ADDRESSING){
-        d = parseRegister(dest);
-        word = buildRegWord(d, INVALID_ADDRESSING);
-        addWordToInstractionImg(word, ARE_A, instructionsImage);
+            /*second word - registers*/
+            word = buildRegWord(rowReg, colReg);
+            addWordToInstractionImg(word, ARE_A, instructionsImage);
+
+        }else if(destAddMode == REGISTER_ADDRESSING){
+            d = parseRegister(dest);
+            word = buildRegWord(d, INVALID_ADDRESSING);
+            addWordToInstractionImg(word, ARE_A, instructionsImage);
+        }
+    }else if(pass == SECOND_PASS){
+        
+        
     }
 
 

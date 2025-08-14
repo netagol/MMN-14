@@ -3,5 +3,8 @@
 
 #include "headers.h"
 
+Bool secondRun(FILE *amfile);
+Bool readLineSecondPass(char *line);
+
 
 #endif

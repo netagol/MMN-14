@@ -3,6 +3,6 @@
 #include "headers.h"
 
 Bool firstRun(FILE *amFile);
-Bool readLine(char *line);
+Bool readLineFirstPass(char *line);
 
 #endif

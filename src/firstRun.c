@@ -12,16 +12,19 @@ Bool firstRun(FILE *amFile){
         if (*line != '\n' && line[0] != ';')
         {
             printf("[%d] Line: %s \n",getRowNum(),line);
-            readLine(line);
+            readLineFirstPass(line);
         }
         increaseRowNum();
     }
     printf("***Labels Tabel***\n");
     printLabelTable(getLabelsTableHead());
+    rewindRowNum();
+    rewind(amFile);
+    if(!secondRun(amFile)) return FALSE;
     return TRUE;
 }
 
-Bool readLine(char *line){
+Bool readLineFirstPass(char *line){
     char lineCopy[MAX_LINE_LEN];
     char *label, *command = NULL;
     Operation *currOp;
@@ -36,7 +39,7 @@ Bool readLine(char *line){
         printf("readline, is unresolved\n");
         if(addLabelToLabelsTable(line,getLabelByName(label)))
         getNextWord(lineCopy + strlen(label) + 1, &command);
-    }else if(isLabelDefinition(lineCopy, &label))
+    }else if(isLabelDefinition(lineCopy, &label, FIRST_PASS))
     {
         printf("Label: %s\nline: %s\n", label,lineCopy);
         addLabelToLabelsTable(lineCopy, NULL);
@@ -59,7 +62,7 @@ Bool readLine(char *line){
             case CODE_COMMAND:
                 printf("CODE_COMMAND\n");
                 currOp = getOperationByName(command);
-                return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0));
+                return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0), FIRST_PASS);
             
             default:
                 return FALSE;
@@ -72,6 +75,7 @@ Bool readLine(char *line){
     
     label = NULL;
     free(command);
+    free(label);
     return TRUE;
 }
 

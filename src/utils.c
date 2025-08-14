@@ -107,7 +107,7 @@ Bool isLabelName(char *word){
     return FALSE;
 }
 
-Bool isLabelDefinition(char *line, char **word){
+Bool isLabelDefinition(char *line, char **word, int pass){
 
     char lineCopy[MAX_LINE_LEN], labelName[MAX_LABEL_NAME], *temp;
 
@@ -121,26 +121,30 @@ Bool isLabelDefinition(char *line, char **word){
         temp = strtok(lineCopy," \t\n");
         printf("temp: %s\n", temp);
         
-        if(*(temp+(strlen(temp)-1)) == ':'){
-            strncpy(labelName,temp,(strlen(temp)-1));
-            labelName[strlen(temp)-1] = '\0';
-            printf("labelName: %s\n", labelName);
+        if(pass == FIRST_PASS){
+            if(*(temp+(strlen(temp)-1)) == ':'){
+                strncpy(labelName,temp,(strlen(temp)-1));
+                labelName[strlen(temp)-1] = '\0';
+                printf("labelName: %s\n", labelName);
 
-            if(isLabelNameValid(labelName)){
-                if((*word = malloc((strlen(labelName) * sizeof(char)) + 1)) == NULL){
-                    yieldError("labelAllocError");
+                if(isLabelNameValid(labelName)){
+                    if((*word = malloc((strlen(labelName) * sizeof(char)) + 1)) == NULL){
+                        yieldError("labelAllocError");
+                        return FALSE;
+                    }
+                    strcpy(*word,labelName);
+                    (*word)[strlen(labelName)] = '\0';
+                    printf("return true word: %s\n", *word);
+                    return TRUE;
+                }else{
                     return FALSE;
-                }
-                strcpy(*word,labelName);
-                (*word)[strlen(labelName)] = '\0';
-                printf("return true word: %s\n", *word);
-                return TRUE;
+                }  
             }else{
+                yieldError("illeagalColumnInLine");
                 return FALSE;
-            }  
-        }else{
-            yieldError("illeagalColumnInLine");
-            return FALSE;
+            }
+        }else if(pass == SECOND_PASS){
+            if(isLabelName(temp)) return TRUE;
         }
     }else{
         return FALSE;
@@ -199,7 +203,12 @@ void getNextWord(char *line, char **command){
 Bool validateCommand(char *command){
     int i;
 
-    if (!strcmp(command,".string") || !strcmp(command,".data") || !strcmp(command,".mat") || !strcmp(command,".extern") || !strcmp(command,".entry"))
+    if (!strcmp(command,".string") || 
+        !strcmp(command,".data") || 
+        !strcmp(command,".mat") || 
+        !strcmp(command,".extern") || 
+        !strcmp(command,".entry")
+    )
     {
         if(!(command[0] == '.')){
             yieldError("missingDotOnCommand", command);
@@ -219,11 +228,31 @@ Bool validateCommand(char *command){
             {
                 yieldError("illeagalCharInCommand", command[i], command);
                 return FALSE;
-            }else{
             }
         }
     }
         return TRUE;
+}
+
+Bool isCodeCommand(char *command){
+    int i;
+
+    if (!strcmp(command,".string") || 
+        !strcmp(command,".data") || 
+        !strcmp(command,".mat") || 
+        !strcmp(command,".extern") || 
+        !strcmp(command,".entry")
+    ) return FALSE;
+    else{
+        for(i = 0; i < strlen(command); i++){
+            if (!(command[i] >= 'a' && command[i] <= 'z'))
+            {
+                yieldError("illeagalCharInCommand", command[i], command);
+                return FALSE;
+            }
+        }
+    }
+    return TRUE;
 }
 
 
@@ -568,6 +597,5 @@ void printBinary(short int word){
         if (i % 4 == 0 && i != 0) putchar(' ');
     }
 }
-
 
 

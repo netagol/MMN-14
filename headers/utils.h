@@ -12,7 +12,7 @@ Bool isMacroName(char *word);
 Bool isRegisterName(char *word);
 Bool isOppName(char *word);
 Bool isLabelName(char *word);
-Bool isLabelDefinition(char *line, char **word);
+Bool isLabelDefinition(char *line, char **word, int pass);
 void increaseRowNum(void);
 void rewindRowNum(void);
 void increaseDC(int num);
@@ -31,6 +31,7 @@ Bool validateMatLine(char *line,int *argsCount, int *matSize, int matNums[MAX_AL
 void printBinary(short int word);
 void trimWhiteSpaces(char **line);
 void trimWhiteSpacesAtStart(char **line);
+Bool isCodeCommand(char *command);
 
 
 #endif
