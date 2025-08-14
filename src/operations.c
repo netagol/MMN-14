@@ -48,7 +48,7 @@ Bool oppRouter(Operation *opp, char *line, int pass){
 
     switch (opp->numOfArgs)
     {
-    case 0: return handleZeroArgsOpp(opp, line);
+    case 0: return handleZeroArgsOpp(opp, line, pass);
     case 1: return handleOneArgOpp(opp, line, pass);
     case 2: return handleTwoArgsOpp(opp, line, pass);
     default:
@@ -57,26 +57,31 @@ Bool oppRouter(Operation *opp, char *line, int pass){
     }
 }
 
-Bool handleZeroArgsOpp(Operation *opp, char *line){
+Bool handleZeroArgsOpp(Operation *opp, char *line, int pass){
     char *rest, *lineCopy;
     printf("inside handleZeroArgsOpp\n");
 
-    if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
-        yieldError("memoryAllocationFailed");
-        return FALSE;
+    if(pass == FIRST_PASS){
+        if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
+            yieldError("memoryAllocationFailed");
+            return FALSE;
+        }
+
+        strcpy(lineCopy,line);
+
+        rest = strtok(lineCopy, " \n\t"); /*extract the command*/
+        if((rest = strtok(NULL, " \n\t")) != NULL){
+            yieldError("unexpectedChrsAfterCommand", rest, opp->name);
+            return FALSE;
+        }
+
+        addWordToInstractionImg(IC,ARE_A,instructionsImage);
+        return TRUE;
+    }else{
+        increaseIC(ONE_IMG_WORD);
     }
 
-    strcpy(lineCopy,line);
-
-    rest = strtok(lineCopy, " \n\t"); /*extract the command*/
-    if((rest = strtok(NULL, " \n\t")) != NULL){
-        yieldError("unexpectedChrsAfterCommand", rest, opp->name);
-        return FALSE;
-    }
-
-    addWordToInstractionImg(IC,ARE_A,instructionsImage);
-
-    return FALSE;
+    
 }
 
 Bool handleOneArgOpp(Operation *opp, char *line, int pass){
@@ -89,15 +94,12 @@ Bool handleOneArgOpp(Operation *opp, char *line, int pass){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    printf("1\n");
     strcpy(lineCopy,line);
-    printf("2\n");
     if(!parseOneOperand(lineCopy,&dest)){
         yieldError("invalidArgsForCommand", opp->name);
         free(lineCopy);
         return FALSE;
     }
-    printf("3\n");
     if((destAddMode = getAddressingMode(dest)) == INVALID_ADDRESSING){
         yieldError("illegalAddressingMode", opp->name);
         free(lineCopy);
@@ -109,12 +111,10 @@ Bool handleOneArgOpp(Operation *opp, char *line, int pass){
         free(lineCopy);
         return FALSE;
     }
-    printf("4\n");
     if(encodeInstruction(opp->opCode,NULL_ADDRESSING, destAddMode, NULL, dest, pass)){
         free(lineCopy);
         return TRUE;
     }
-    printf("5\n");
     free(lineCopy);
     return FALSE;
 }
@@ -461,14 +461,48 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             word = buildRegWord(d, INVALID_ADDRESSING);
             addWordToInstractionImg(word, ARE_A, instructionsImage);
         }
+
+
     }else if(pass == SECOND_PASS){
-        
-        
+        increaseIC(ONE_IMG_WORD);/*pass the command*/
+
+        if(srcAddMode == REGISTER_ADDRESSING && destAddMode == REGISTER_ADDRESSING){
+            increaseIC(ONE_IMG_WORD);
+            return TRUE;
+        }
+
+        if(srcAddMode == INSTANT_ADDRESSING){
+            increaseIC(ONE_IMG_WORD);
+        }else if(srcAddMode == DIRECT_ADDRESSING){
+            if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+            increaseIC(ONE_IMG_WORD);
+            
+        }else if(srcAddMode == MATRIX_ADDRESSING){
+            printf("5.1\n");
+            if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            increaseIC(TWO_IMG_WORDS);
+
+        }else if(srcAddMode == REGISTER_ADDRESSING){
+            increaseIC(ONE_IMG_WORD);
+        }
+
+        /*Destination Operand*/
+        if(destAddMode == INSTANT_ADDRESSING){
+            increaseIC(ONE_IMG_WORD);
+        }else if(destAddMode == DIRECT_ADDRESSING){
+            if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+            increaseIC(ONE_IMG_WORD);
+            
+        }else if(destAddMode == MATRIX_ADDRESSING){
+            printf("5.1\n");
+            if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            increaseIC(TWO_IMG_WORDS);
+
+        }else if(destAddMode == REGISTER_ADDRESSING){
+            increaseIC(ONE_IMG_WORD);
+        }  
     }
-
-
     return TRUE;
-
 }
 
 int parseRegister(char *arg){

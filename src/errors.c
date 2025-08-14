@@ -1,5 +1,15 @@
 #include "../headers/errors.h"
 
+Bool errFlag = FALSE;
+
+Bool getErrFlag(void){
+    return errFlag;
+}
+
+void setErrFlag(Bool flag){
+    errFlag = flag;
+}
+
 Err errorTable[] = {
     {"amFileOpenError","%s File could not be opened or created, try another file"},
     {"missingFileName","Missing name for %s file. %s File could not be created"},
@@ -56,6 +66,8 @@ Err errorTable[] = {
 void yieldError(char *errName, ...){
     int i;
     va_list args;
+
+    errFlag = currentPass == FIRST_PASS ? TRUE : FALSE;
 
     for(i = 0; i < MAX_ERR_TABLE_SIZE; i++){
         if(!strcmp(errName,errorTable[i].name)) {

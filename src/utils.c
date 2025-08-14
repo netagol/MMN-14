@@ -4,7 +4,15 @@ int rowNum = 1;
 int DC = 0;
 int IC = IC_START;
 char currentFileName[MAX_FILE_NAME] = "";
+int currentPass = 0;
 
+void setFirstPass(void){
+    currentPass = FIRST_PASS;
+}
+
+void setSecondPass(void){
+    currentPass = SECOND_PASS;
+}
 
 void increaseRowNum(void){
     rowNum ++;
@@ -143,12 +151,13 @@ Bool isLabelDefinition(char *line, char **word, int pass){
                 yieldError("illeagalColumnInLine");
                 return FALSE;
             }
-        }else if(pass == SECOND_PASS){
+        }else{
             if(isLabelName(temp)) return TRUE;
         }
     }else{
         return FALSE;
     }
+    return FALSE;
 }
 
 void trimWhiteSpaces(char **line){

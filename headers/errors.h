@@ -10,12 +10,18 @@
 #define MAX_ERR_TABLE_SIZE 100
 
 
+
 typedef struct {
     char name[MAX_ERR_NAME];
     char message[MAX_ERR_MSG];
 } Err;
 
 extern Err errorTable[];
+extern Bool errFlag;
+
+Bool getErrFlag(void);
+
+void setErrFlag(Bool flag);
 
 void yieldError(char *errName, ...);
 

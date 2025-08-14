@@ -5,6 +5,9 @@
 
 #define OP_TABLE_SIZE 20
 #define MAX_OP_NAME 5
+#define ONE_IMG_WORD 1
+#define TWO_IMG_WORDS 2
+#define THREE_IMG_WORDS 3
 
 typedef struct Operation
 {
@@ -28,7 +31,7 @@ typedef enum AddMode{
 
 Operation *getOperationByName(char *opName);
 Bool oppRouter(Operation *opp, char *line, int pass);
-Bool handleZeroArgsOpp(Operation *opp, char *line);
+Bool handleZeroArgsOpp(Operation *opp, char *line, int pass);
 Bool handleOneArgOpp(Operation *opp, char *line, int pass);
 Bool handleTwoArgsOpp(Operation *opp, char *line, int pass);
 

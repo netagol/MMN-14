@@ -3,6 +3,10 @@
 
 #include "headers.h"
 
+void setFirstPass(void);
+void setSecondPass(void);
+int getCurrentPass(void);
+
 void createNewFileName(char *originName, char *destName, char *extension);
 char *getCurrentFileName(void);
 void updateCurrentFileName(char *name);

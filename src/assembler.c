@@ -35,9 +35,20 @@ Bool processFile(char *asFileName){
 
                 updateCurrentFileName(amFileName);
                 rewindRowNum();
-                firstRun(amFile);
+                if(!firstRun(amFile)) return FALSE;
+                printLabelTable(getLabelsTableHead());
                 printDataImg();
                 printInstructionImg();
+
+                /*prep for second pass*/
+                rewindRowNum();
+                rewind(amFile);
+                if(getErrFlag()) return FALSE;
+                if(!secondRun(amFile)) return FALSE;
+                printLabelTable(getLabelsTableHead());
+                printDataImg();
+                printInstructionImg();
+
             }else{
                 fclose(amFile);
                 remove(amFileName);

@@ -13,6 +13,7 @@
 
 extern int DC, IC, rowNum;
 extern char currentFileName[MAX_FILE_NAME];
+extern int currentPass;
 
 typedef enum Booleans{
     TRUE = 1,

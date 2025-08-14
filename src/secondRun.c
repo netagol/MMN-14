@@ -3,15 +3,20 @@
 Bool secondRun(FILE *amFile){
     char line[MAX_LINE_LEN];
 
+    setSecondPass();
+    printf("*** STATE: SECOND_RUN ***\nFileName: %s\nrowNum: %d, IC: %d, DC: %D\n", getCurrentFileName(),getRowNum(), getIC(),getDC());
+
+
     while ((fgets(line, MAX_LINE_LEN, amFile)) != NULL)
     {
         if (*line != '\n' && line[0] != ';')
         {
             printf("[%d] Line: %s \n",getRowNum(),line);
-            readLineSecondPass(line);
+            if(!readLineSecondPass(line)) return FALSE;
         }
         increaseRowNum();
     }
+    return TRUE;
 }
 
 Bool readLineSecondPass(char *line){
@@ -30,11 +35,12 @@ Bool readLineSecondPass(char *line){
 
         if(isCodeCommand(command)){
             currOp = getOperationByName(command);
-            if(currOp->numOfArgs > 0){
+            if(currOp->numOfArgs >= 0){
                 return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0), SECOND_PASS);
             }
         }
     }
+/* add here if not label def*/    
 }
 
 

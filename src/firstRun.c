@@ -7,6 +7,8 @@ Bool firstRun(FILE *amFile){
 
 
     printf("*** STATE: FIRST_RUN ***\nFileName: %s\nrowNum: %d, IC: %d, DC: %D\n", getCurrentFileName(),getRowNum(), getIC(),getDC());
+    setFirstPass();
+
     while ((fgets(line, MAX_LINE_LEN, amFile)) != NULL)
     {
         if (*line != '\n' && line[0] != ';')
@@ -17,10 +19,6 @@ Bool firstRun(FILE *amFile){
         increaseRowNum();
     }
     printf("***Labels Tabel***\n");
-    printLabelTable(getLabelsTableHead());
-    rewindRowNum();
-    rewind(amFile);
-    if(!secondRun(amFile)) return FALSE;
     return TRUE;
 }
 
