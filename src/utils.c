@@ -15,10 +15,10 @@ void rewindRowNum(void){
 }
 
 void increaseDC(int num){
-    DC = DC + num;
+    DC += num;
 }
 void increaseIC(int num){
-    IC = IC + num;
+    IC += num;
 }
 
 int getRowNum(void){
@@ -93,13 +93,16 @@ Bool isOppName(char *word){
 
 Bool isLabelName(char *word){
     Label *temp;
+    printf("inside isLabelName, word: %s\n", word);
+    printf("1\n");
     temp = getLabelsTableHead();
-
+    printf("2\n");
     while (temp != NULL){
         if (!strcmp(word,temp->name)) return TRUE;
-        
+
         temp = temp->next;
     }
+    printf("3\n");
 
     return FALSE;
 }
@@ -116,10 +119,13 @@ Bool isLabelDefinition(char *line, char **word){
         strcpy(lineCopy,line);
         printf("3\n");
         temp = strtok(lineCopy," \t\n");
-
+        printf("temp: %s\n", temp);
         
         if(*(temp+(strlen(temp)-1)) == ':'){
             strncpy(labelName,temp,(strlen(temp)-1));
+            labelName[strlen(temp)-1] = '\0';
+            printf("labelName: %s\n", labelName);
+
             if(isLabelNameValid(labelName)){
                 if((*word = malloc((strlen(labelName) * sizeof(char)) + 1)) == NULL){
                     yieldError("labelAllocError");
@@ -127,6 +133,7 @@ Bool isLabelDefinition(char *line, char **word){
                 }
                 strcpy(*word,labelName);
                 (*word)[strlen(labelName)] = '\0';
+                printf("return true word: %s\n", *word);
                 return TRUE;
             }else{
                 return FALSE;
@@ -155,8 +162,21 @@ void trimWhiteSpaces(char **line){
     strcpy(*line, temp);
 }
 
+void trimWhiteSpacesAtStart(char **line){
+    int i;
+
+    i = 0;
+
+    while (isspace((*line)[i]))
+    {
+        (*line)++;
+    }
+
+}
+
 void getNextWord(char *line, char **command){
     char *lineCopy, *opName;
+    printf("inside getNextWord\n");
 
     if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
@@ -166,9 +186,14 @@ void getNextWord(char *line, char **command){
     strcpy(lineCopy, line);
 
     opName = strtok(lineCopy, " \t\n");
+    if((*command = malloc(strlen(opName)*sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        return;
+    }
     strcpy(*command,opName);
     
     free(lineCopy);
+    printf("outside getNextWord\n");
 }
 
 Bool validateCommand(char *command){

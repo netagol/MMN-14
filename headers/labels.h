@@ -31,7 +31,7 @@ typedef struct labelsTable
 }labelsTable;
 
 
-Bool addLabelToLabelsTable(char *line);
+Bool addLabelToLabelsTable(char *line, Label *label);
 Bool isLabelNameValid(char *word);
 void getLabelName(char *line, char **labelName);
 int getLabelType(void);
@@ -39,6 +39,7 @@ Label *getLabelsTableHead(void);
 void printLabelTable(Label *temp);
 Label *getLabelByName(char *name);
 Bool addLabelPlaceholder(char *arg);
+Bool isUnresolvedLabel(char *line ,char **labelVar);
 
 
 #endif

@@ -45,6 +45,7 @@ Bool addDataToDataImage(char *line){
     printf("2\n");
 
     argCount = countArgs(line);
+    printf("arg count: %d\n", argCount);
     
     if ((dataImage = realloc(dataImage, (getDC() + argCount) * sizeof(DataImageEntry))) == NULL)
     {
@@ -60,13 +61,15 @@ Bool addDataToDataImage(char *line){
     while (num_s != NULL)
     {
         num_i = (short int)atoi(num_s);
+        printf("while, num_i: %d, DC: %d\n", num_i, getDC());
         dataImage[DC].word = num_i;
         dataImage[DC].address = getDC();
-        printf("num = %d, argCount: %d\n", num_i, argCount);
         increaseDC(1);
+        printf("num = %d, argCount: %d\n", num_i, argCount);
 
         num_s = strtok(NULL, ",");
     }
+
     printf("5\n");
 
     free(lineCopy);
@@ -165,9 +168,15 @@ void printDataImg(void){
     printf("Data image: \n");
 
     for(i = 0; i < DC; i++){
-        printf("Address: %4d | word: ",dataImage[i].address);
-        printBinary(dataImage[i].word);
-        printf("\n");
+        if(dataImage[i].address >= 0){
+            printf("Address: %4d | word: ",dataImage[i].address);        
+            printBinary(dataImage[i].word);
+            printf("\n");
+        }else{
+            printf("Address:      | word: ");
+            printBinary(dataImage[i].word);
+            printf("\n");   
+        }
     }
     printf("\n");
 }
@@ -175,12 +184,15 @@ void printDataImg(void){
 void printInstructionImg(void){
     int i;
 
-    printf("Instruction image: IC: %d\n", IC);
+    printf("Instruction image:\n");
 
-    for(i = IC_START; i < IC; i++){
-        printf("Address: %4d | word: ",i);
-        printBinary(instructionsImage[i]);
-        printf("\n");
+    for(i = 0; i < (IC - IC_START); i++){
+        printf("Address: %4d | word: ",i + IC_START);
+        if (instructionsImage[i] >= 0)
+        {
+            printBinary(instructionsImage[i]);
+            printf("\n");
+        }
     }
     printf("\n");
 }
@@ -200,7 +212,7 @@ Bool allocInstructionImg(int srcAddMode, int destAddMode){
     if (
         destAddMode == INSTANT_ADDRESSING ||
         destAddMode == DIRECT_ADDRESSING ||
-        srcAddMode == REGISTER_ADDRESSING
+        destAddMode == REGISTER_ADDRESSING
     ) numOfWords++;
     else if(destAddMode == MATRIX_ADDRESSING) numOfWords += 2;
     
@@ -220,11 +232,12 @@ Bool allocInstructionImg(int srcAddMode, int destAddMode){
 
 unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are){
     unsigned short w = 0;
-
     w |= ((opCode & FOUR_BIT_MASK) << 6);
     w |= ((srcMode & TWO_BIT_MASK) << 4);
     w |= ((dstMode & TWO_BIT_MASK) << 2);
     w |= (are & TWO_BIT_MASK);
+
+    printf("w: %d\n", w);
 
     return w;
 }
@@ -232,16 +245,18 @@ unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are)
 unsigned short buildRegWord(int srcReg, int destReg){
     unsigned short w = 0;
 
-    if(srcReg >= 0) w |= ((srcReg & TWO_BIT_MASK) << 2);
-    if(destReg >= 0) w |= ((destReg & TWO_BIT_MASK) << 6);
-
+    printf("inside buildRegWord, src: %d, dest %d\n",srcReg,destReg);
+    if(destReg >= 0) w |= ((destReg & FOUR_BIT_MASK) << 2);
+    if(srcReg >= 0) w |= ((srcReg & FOUR_BIT_MASK) << 6);
+    printf("w: %d\n",(short)w);
     return w;
 }
 
-void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC){
+void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img){
     unsigned short w; 
     w = (val & CLEAR_ARE_MASK) | (are & TWO_BIT_MASK);
-    img[*IC - IC_START] = w;
+    printf("addword w: %d, IC: %d\n", w,getIC());
+    img[getIC() - IC_START] = w;
     increaseIC(1);
 }
 

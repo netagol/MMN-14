@@ -6,13 +6,13 @@
 #define OP_TABLE_SIZE 20
 #define MAX_OP_NAME 5
 
-typedef struct
+typedef struct Operation
 {
     char name[MAX_OP_NAME];
     int opCode;
     int numOfArgs;
-    int leagalSrcModes[4];
-    int leagalDestModes[4];
+    int leagalSrcModes[5];
+    int leagalDestModes[5];
 }Operation;
 
 extern Operation opTable[OP_TABLE_SIZE];
@@ -22,7 +22,8 @@ typedef enum AddMode{
     DIRECT_ADDRESSING = 1,
     MATRIX_ADDRESSING = 2,
     REGISTER_ADDRESSING = 3,
-    INVALID_ADDRESSING = -1
+    INVALID_ADDRESSING = -1,
+    NULL_ADDRESSING = -2
 } AddMode;
 
 Operation *getOperationByName(char *opName);
@@ -44,6 +45,6 @@ long parseInstant(char *arg);
 Bool resolveLabel(char *arg, long *addr, Bool *isExt);
 Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg);
 
-void handleStopOpp(void);
+void printOperation(Operation *opp);
 
 #endif

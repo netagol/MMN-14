@@ -6,7 +6,7 @@ Bool firstRun(FILE *amFile){
     char line[MAX_LINE_LEN];
 
 
-    printf("*** STATE: FIRST_RUN ***\nFileName: %s\nrowNum: %d\n", getCurrentFileName(),getRowNum());
+    printf("*** STATE: FIRST_RUN ***\nFileName: %s\nrowNum: %d, IC: %d, DC: %D\n", getCurrentFileName(),getRowNum(), getIC(),getDC());
     while ((fgets(line, MAX_LINE_LEN, amFile)) != NULL)
     {
         if (*line != '\n' && line[0] != ';')
@@ -23,7 +23,7 @@ Bool firstRun(FILE *amFile){
 
 Bool readLine(char *line){
     char lineCopy[MAX_LINE_LEN];
-    char *label, *command;
+    char *label, *command = NULL;
     Operation *currOp;
     commandType commType;
 
@@ -31,10 +31,15 @@ Bool readLine(char *line){
 
     printf("*** inside read line ***\n");
     printf("line: %s\n", lineCopy);
-    if (isLabelDefinition(lineCopy, &label))
+
+    if(isUnresolvedLabel(lineCopy, &label)){
+        printf("readline, is unresolved\n");
+        if(addLabelToLabelsTable(line,getLabelByName(label)))
+        getNextWord(lineCopy + strlen(label) + 1, &command);
+    }else if(isLabelDefinition(lineCopy, &label))
     {
         printf("Label: %s\nline: %s\n", label,lineCopy);
-        addLabelToLabelsTable(lineCopy);
+        addLabelToLabelsTable(lineCopy, NULL);
 
         printf("line: %s, label: %s\n", lineCopy, label);
         getNextWord(lineCopy + strlen(label)+1, &command);
@@ -54,7 +59,7 @@ Bool readLine(char *line){
             case CODE_COMMAND:
                 printf("CODE_COMMAND\n");
                 currOp = getOperationByName(command);
-                return oppRouter(currOp, lineCopy);
+                return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0));
             
             default:
                 return FALSE;
@@ -65,7 +70,8 @@ Bool readLine(char *line){
         }
     }
     
-    label = command = NULL;
+    label = NULL;
+    free(command);
     return TRUE;
 }
 

@@ -20,7 +20,6 @@ void increaseIC(int num);
 int getRowNum(void);
 int getIC(void);
 int getDC(void);
-void removeLabelFromLine(char **line);
 void getNextWord(char *line, char **command);
 Bool validateCommand(char *command);
 commandType getCommandType(char *command);
@@ -31,6 +30,7 @@ Bool validateDataLine(char *line);
 Bool validateMatLine(char *line,int *argsCount, int *matSize, int matNums[MAX_ALLOWED_LINE_LEN]);
 void printBinary(short int word);
 void trimWhiteSpaces(char **line);
+void trimWhiteSpacesAtStart(char **line);
 
 
 #endif

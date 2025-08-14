@@ -1,22 +1,22 @@
 #include "../headers/operations.h"
 
 Operation opTable[OP_TABLE_SIZE] = {
-    {"mov",  0,  2, {0,1,2,3},{1,2,3}},
-    {"cmp",  1,  2, {0,1,2,3},{0, 1,2,3}},
-    {"add",  2,  2, {0,1,2,3},{1,2,3}},
-    {"sub",  3,  2, {0,1,2,3},{1,2,3}},
-    {"not",  4,  1, {-1}     ,{1,2,3}},
-    {"clr",  5,  1, {-1}     ,{1,2,3}},
-    {"lea",  6,  2, {1,2}    ,{1,2,3}},
-    {"inc",  7,  1, {-1}    ,{1,2,3}},
-    {"dec",  8,  1, {-1}     ,{1,2,3}},
-    {"jmp",  9,  1, {-1}     ,{1,2,3}},
-    {"bne",  10, 1, {-1}     ,{1,2,3}},
-    {"red",  11, 1, {-1}     ,{1,2,3}},
-    {"prn",  12, 1, {-1}     ,{0,1,2,3}},
-    {"jsr",  13, 1, {-1}     ,{1,2,3}},
-    {"rts",  14, 0, {-1}     ,{-1}},
-    {"stop", 15, 0, {-1}     ,{-1}}
+    {"mov",  0,  2, {0,1,2,3,NULL_ADDRESSING},{1,2,3,NULL_ADDRESSING}},
+    {"cmp",  1,  2, {0,1,2,3,NULL_ADDRESSING},{0,1,2,3,NULL_ADDRESSING}},
+    {"add",  2,  2, {0,1,2,3,NULL_ADDRESSING},{1,2,3,NULL_ADDRESSING}},
+    {"sub",  3,  2, {0,1,2,3,NULL_ADDRESSING},{1,2,3,NULL_ADDRESSING}},
+    {"not",  4,  1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"clr",  5,  1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"lea",  6,  2, {1,2}                    ,{1,2,3}},
+    {"inc",  7,  1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"dec",  8,  1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"jmp",  9,  1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"bne",  10, 1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"red",  11, 1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"prn",  12, 1, {NULL_ADDRESSING}        ,{0,1,2,3}},
+    {"jsr",  13, 1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"rts",  14, 0, {NULL_ADDRESSING}        ,{NULL_ADDRESSING}},
+    {"stop", 15, 0, {NULL_ADDRESSING}        ,{NULL_ADDRESSING}}
 };
 
 
@@ -24,15 +24,13 @@ Operation *getOperationByName(char *opName){
     int i;
     Operation *op;
 
-    printf("Inside getOperationByName\n");
+    printf("Inside getOperationByName, opName: %s\n", opName);
     op = (Operation *)NULL;
 
     for(i = 0; i < OP_TABLE_SIZE; i++){
         if(!strcmp(opName,opTable[i].name)){
-            op = (Operation *)malloc(sizeof(Operation));
-            strcpy(op->name, opTable[i].name);
-            op->opCode = opTable[i].opCode;
-            printf("return opp\n");
+            op = &(opTable[i]);
+            printf("return op\n");
             return op;
         }
     }
@@ -42,7 +40,11 @@ Operation *getOperationByName(char *opName){
 }
 
 Bool oppRouter(Operation *opp, char *line){
-    printf("inside oppRouter\n");
+
+    printOperation(opp);
+
+    trimWhiteSpacesAtStart(&line);
+    printf("inside oppRouter, numOfArgs: %d, oppName: %s, line: %s\n", opp->numOfArgs, opp->name,line);
 
     switch (opp->numOfArgs)
     {
@@ -72,7 +74,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line){
         return FALSE;
     }
 
-    addWordToInstractionImg(IC,ARE_A,instructionsImage, &IC);
+    addWordToInstractionImg(IC,ARE_A,instructionsImage);
 
     return FALSE;
 }
@@ -81,29 +83,34 @@ Bool handleOneArgOpp(Operation *opp, char *line){
     char *dest, *lineCopy;
     int destAddMode;
 
+    printf("Inside handleOneArgOpp\n");
+
     if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-
+    printf("1\n");
     strcpy(lineCopy,line);
-
+    printf("2\n");
     if(!parseOneOperand(lineCopy,&dest)){
         yieldError("invalidArgsForCommand", opp->name);
         return FALSE;
     }
-
-    destAddMode = getAddressingMode(dest);
-    if (!isValidAddrMode(opp->opCode, INVALID_ADDRESSING ,destAddMode))
+    printf("3\n");
+    if((destAddMode = getAddressingMode(dest)) == INVALID_ADDRESSING){
+        yieldError("illegalAddressingMode", opp->name);
+        return FALSE;
+    }
+    if (!isValidAddrMode(opp->opCode, NULL_ADDRESSING ,destAddMode))
     {
         yieldError("illegalAddressingMode", opp->name);
         return FALSE;
     }
-
-    if(encodeInstruction(opp->opCode,INVALID_ADDRESSING, destAddMode, NULL, dest, FIRST_PASS)){
+    printf("4\n");
+    if(encodeInstruction(opp->opCode,NULL_ADDRESSING, destAddMode, NULL, dest, FIRST_PASS)){
         return TRUE;
     }
-
+    printf("5\n");
     return FALSE;
 }
 
@@ -111,6 +118,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
     char *src, *dest, *lineCopy;
     int srcAddMode, destAddMode;
 
+    printf("Inside handleTwoArgsOpp, line: %s\n", line);
     if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
@@ -126,6 +134,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
 
     srcAddMode = getAddressingMode(src);
     destAddMode = getAddressingMode(dest);
+    printf("srcAddrMode: %d, destAddrMode: %d\n", srcAddMode,destAddMode);
 
     if(!isValidAddrMode(opp->opCode, srcAddMode, destAddMode)){
         yieldError("illegalAddressingMode", opp->name);
@@ -145,28 +154,36 @@ Bool handleTwoArgsOpp(Operation *opp, char *line){
 Bool parseOneOperand(char *line, char **dest){
     char *lineCopy, *arg;
 
+    printf("inside parseOneOperand\n");
+    printf("1\n");
     if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-
+    printf("2\n");
     strcpy(lineCopy,line);
-
+    printf("3\n");
     arg = strtok(lineCopy," \t"); /*remove the command*/
+    printf("4\n");
     if((arg = strtok(NULL, " \t\n")) == NULL){
         return FALSE;
     }
+    printf("5\n");
 
     trimWhiteSpaces(&arg);
+    printf("6\n");
 
-    if((dest = malloc(strlen(arg) * sizeof(char))) == NULL){
+    if(((*dest) = malloc(strlen(arg) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
+    printf("7\n");
 
     strcpy(*dest,arg);
+    printf("8\n");
 
     free(lineCopy);
+    printf("9\n");
 
     return TRUE;
 }
@@ -182,17 +199,20 @@ Bool parseTwoOperands(char *line, char **src, char **dest){
     strcpy(lineCopy,line);
 
     tempSrc = strtok(lineCopy, " \t"); /*remove the command*/
+    printf("1. tempsrc: %s\n", tempSrc);
     if((tempSrc = strtok(NULL, ",")) == NULL){
         yieldError("noOperandFound");
         free(lineCopy);
         return FALSE;
     }
+    printf("2. tempsrc: %s\n", tempSrc);
 
     if((tempDest = strtok(NULL," \n\t")) == NULL){
         yieldError("noOperandFound");
         free(lineCopy);
         return FALSE;
     }
+    printf("2. dest: %s\n", tempDest);
 
     if(((*src) = malloc(strlen(tempSrc) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
@@ -225,34 +245,54 @@ Bool parseTwoOperands(char *line, char **src, char **dest){
 
 
 int getAddressingMode(char *arg){
+    printf("inside getAddressingMode arg: %s\n", arg);
+
     if(arg[0] == 'r' && (arg[1] >= '0' && arg[1] <= '7')) return REGISTER_ADDRESSING;
-
+    printf("0\n");
     if(arg[0] == '#') return INSTANT_ADDRESSING;
-
+    printf("1\n");
     if(isMatrixFormat(arg)) return MATRIX_ADDRESSING;
-
+    printf("2\n");
     if(isLabelName(arg)) return DIRECT_ADDRESSING;
-
+    printf("3\n");
     if(isLabelNameValid(arg)){
+        printf("labelNameValid!\n");
         if(!addLabelPlaceholder(arg)){
             yieldError("labelNotAdded",arg);
             return INVALID_ADDRESSING;
         }else return DIRECT_ADDRESSING;
     }
-
+    printf("INVALID_ADDRESSING!\n");
     return INVALID_ADDRESSING;
 
 }
 
 Bool isMatrixFormat(char *arg){
-    char *firstOpen, *secondOpen;
+    char *firstOpen, *secondOpen, *matName;
+
+    printf("inside isMatrixFormat!\n");
 
     if((firstOpen = strchr(arg,'[')) != NULL){
         if((secondOpen = strchr(firstOpen + 1,'[')) != NULL){
+            if((matName = malloc((strlen(arg)-strlen(firstOpen)) * sizeof(char))) == NULL){
+                yieldError("memoryAllocationFailed");
+                return FALSE;
+            }
+
+            strncpy(matName,arg,(strlen(arg)-strlen(firstOpen)));
+            trimWhiteSpaces(&matName);
+            printf("TRUE, matName: %s\n", matName);
+            if(!isLabelName(matName)){
+                if(isLabelNameValid(matName)){
+                    if(!addLabelPlaceholder(matName)){
+                        return FALSE;
+                    }
+                }
+            }
             return TRUE;
         }
     }
-
+    printf("FALSE\n");
     return FALSE;
 }
 
@@ -260,12 +300,13 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
     Operation *op;
     int i = 0, srcValid = FALSE, destValid = FALSE;
 
-
+    printf("inside isValidAddrMode, opCode: %d, srcAdd: %d, destAdd: %d\n", opCode, srcAddrMode, destAddrMode);
     op = getOppByOpcode(opCode);
+    printOperation(op);
 
     if(op != NULL){
-        if(op->leagalSrcModes[0] != INVALID_ADDRESSING){
-            while ((op->leagalSrcModes[i]))
+        if(op->numOfArgs == 2){
+            while (op->leagalSrcModes[i] != NULL_ADDRESSING)
             {
                 if(srcAddrMode == op->leagalSrcModes[i]){
                     srcValid = TRUE;
@@ -274,12 +315,12 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
                 i++;
             }
         }else{
-            if(srcAddrMode == INVALID_ADDRESSING){
+            if(srcAddrMode == NULL_ADDRESSING){
                 srcValid = TRUE;
             }
         }
 
-        if((op->leagalDestModes[0] != INVALID_ADDRESSING)){
+        if((op->leagalDestModes[0] != NULL_ADDRESSING)){
             i = 0;
             while ((op->leagalDestModes[i]))
             {
@@ -290,7 +331,7 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
                 i++;
             }
         }else{
-            if(destAddrMode == INVALID_ADDRESSING){
+            if(destAddrMode == NULL_ADDRESSING){
                 destValid = TRUE;
             }
         }
@@ -326,12 +367,16 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
     int s, d, rowReg, colReg;
     Bool isExt;
     char label[MAX_LABEL_NAME];
-    s = d = 0;
+    s = d = val = addr =0;
 
+    printf("Inside encodeInstruction\n");
+    printf("1\n");
     if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
-
+    printf("2\n");
     firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
-    addWordToInstractionImg(firstWord, ARE_A, instructionsImage, &IC);
+    printf("3 first Word = %d\n", firstWord);
+    addWordToInstractionImg(firstWord, ARE_A, instructionsImage);
+    printf("4\n");
 
     /*Extra words*/
 
@@ -340,10 +385,10 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
         s = parseRegister(src);
         d = parseRegister(dest);
         word = buildRegWord(s,d);
-        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
+        addWordToInstractionImg(word, ARE_A, instructionsImage);
         return TRUE;
     }
-
+    printf("5\n");
     /*Source Operand*/
     if(srcAddMode == INSTANT_ADDRESSING){
         val = parseInstant(src);
@@ -352,24 +397,63 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             return FALSE;
         }
         word = (unsigned short)val;
-        addWordToInstractionImg(word << 2, ARE_A, instructionsImage, &IC);
+        addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
     }else if(srcAddMode == DIRECT_ADDRESSING){
         if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
-        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage, &IC);
+        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
     }else if(srcAddMode == MATRIX_ADDRESSING){
+        printf("5.1\n");
         /*first word - address*/
         if(!parseMatrix(src, label, &rowReg, &colReg)) return FALSE;
+        printf("5.2 addr: %ld\n", addr);
         if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage, &IC);
+        printf("5.3, addr: %ld\n", addr);
+        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
+        printf("5.4\n");
 
         /*second word - registers*/
         word = buildRegWord(rowReg, colReg);
-        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
+        addWordToInstractionImg(word, ARE_A, instructionsImage);
 
     }else if(srcAddMode == REGISTER_ADDRESSING){
         s = parseRegister(src);
         word = buildRegWord(s, INVALID_ADDRESSING);
-        addWordToInstractionImg(word, ARE_A, instructionsImage, &IC);
+        addWordToInstractionImg(word, ARE_A, instructionsImage);
+    }
+
+    /*Destination Operand*/
+    if(destAddMode == INSTANT_ADDRESSING){
+        val = parseInstant(dest);
+        if(val < -MAX_SHORT_NUM || val > MAX_SHORT_NUM){
+            yieldError("instantArgOutOfRang",val, MAX_SHORT_NUM);
+            return FALSE;
+        }
+        word = (unsigned short)val;
+        addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
+    }else if(destAddMode == DIRECT_ADDRESSING){
+        if(!(resolveLabel(dest, &addr,&isExt))) return FALSE;
+        printf("direct addr: %ld\n", addr << 2);
+        printBinary((short)(addr << 2));
+        printf("\n");
+        addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
+    }else if(destAddMode == MATRIX_ADDRESSING){
+        printf("5.1\n");
+        /*first word - address*/
+        if(!parseMatrix(dest, label, &rowReg, &colReg)) return FALSE;
+        printf("5.2 addr: %ld\n", addr);
+        if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+        printf("5.3, addr: %ld\n", addr);
+        addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
+        printf("5.4\n");
+
+        /*second word - registers*/
+        word = buildRegWord(rowReg, colReg);
+        addWordToInstractionImg(word, ARE_A, instructionsImage);
+
+    }else if(destAddMode == REGISTER_ADDRESSING){
+        d = parseRegister(dest);
+        word = buildRegWord(d, INVALID_ADDRESSING);
+        addWordToInstractionImg(word, ARE_A, instructionsImage);
     }
 
 
@@ -387,12 +471,18 @@ long parseInstant(char *arg){
 
 Bool resolveLabel(char *arg, long *addr, Bool *isExt){
     Label *temp;
+
+    printf("inside resolveLabel, arg: %s\n", arg);
+    printf("1\n");
         if(isLabelName(arg)){
+            printf("2\n");
             if((temp = getLabelByName(arg)) == NULL){
                 yieldError("labelNotFound", arg);
                 return FALSE;
             }else{
+                printf("3, temp address: %ld\n", (long)temp->address);
                 *addr = temp->address;
+                printf("addr: %ld\n", *addr);
                 *isExt = temp->type == EXTERN_SYMBOL ? TRUE : FALSE;
                 return TRUE;
             }
@@ -403,6 +493,8 @@ Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
     char *firstOpen, *firstClose, *secondOpen, *secondClose;
     int labelLen;
     char regStr[5];
+
+    printf("inside parseMatrix\n");
 
     if(!arg) return FALSE;
 
@@ -454,6 +546,8 @@ Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
     /*extract second reg*/
     strncpy(regStr,secondOpen +1, secondClose - secondOpen - 1);
     regStr[secondClose - secondOpen - 1] = '\0';
+
+    printf("regStr: %s\n", regStr);
     
     if(regStr[0] != 'r' || regStr[1] < '0' || regStr[1] > '7' || regStr[2] != '\0'){
         yieldError("invalidMatrixRegister", regStr);
@@ -462,5 +556,11 @@ Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
 
     *colReg = regStr[1] - '0';
 
+    printf("rowReg: %d, colReg: %d\n", *rowReg, *colReg);
+
     return TRUE;
+}
+
+void printOperation(Operation *opp){
+    printf("Opp Name: %s\nOpCode: %d\nNumOfArgs: %d\n",opp->name,opp->opCode,opp->numOfArgs);
 }

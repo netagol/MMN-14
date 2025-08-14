@@ -6,7 +6,7 @@
 #define INITIAL_CAPACITY 1
 #define FOUR_BIT_MASK 15 /*1111*/
 #define TWO_BIT_MASK 3 /*11*/
-#define CLEAR_ARE_MASK 4092 /*1111 1111 1100*/
+#define CLEAR_ARE_MASK 0xfffc /*1111 1111 1111 1100*/
 
 
 typedef struct DataImageEntry_s
@@ -35,7 +35,7 @@ void printInstructionImg(void);
 Bool allocInstructionImg(int srcAddMode, int destAddMode);
 unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are);
 unsigned short buildRegWord(int srcReg, int destReg);
-void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img, int *IC);
+void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img);
 
 
 #endif
