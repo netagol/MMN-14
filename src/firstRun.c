@@ -18,6 +18,8 @@ Bool firstRun(FILE *amFile){
         }
         increaseRowNum();
     }
+    updateDataImgAddrs();
+    updateLabelsTableAddrs();
 
     return TRUE;
 }

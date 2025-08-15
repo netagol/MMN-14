@@ -4,7 +4,7 @@
 int main(void){
 
     char asFileName[MAX_FILE_NAME];
-    strcpy(asFileName,"tests/mov.as");
+    strcpy(asFileName,"tests/demoInput.as");
     if (!processFile(asFileName))
     {
         yieldError("fileNotProcessed",asFileName);
@@ -15,8 +15,8 @@ int main(void){
 
 Bool processFile(char *asFileName){
 
-    FILE *asFile, *amFile;
-    char amFileName[MAX_FILE_NAME];
+    FILE *asFile, *amFile, *objFile;
+    char amFileName[MAX_FILE_NAME], objFileName[MAX_FILE_NAME];
 
     macroCount = 0;
 
@@ -45,25 +45,39 @@ Bool processFile(char *asFileName){
                 rewindRowNum();
                 rewindIC();
                 rewind(amFile);
-
+                
                 if(getErrFlag()) return FALSE;
                 if(!secondRun(amFile)) return FALSE;
                 printf("SECOND RUN SUMMARY\n");
                 printLabelTable(getLabelsTableHead());
                 printDataImg();
-                printInstructionImg();
+                printInstructionImg();  
 
+                createNewFileName(amFileName,objFileName,".ob");
+                updateCurrentFileName(objFileName);
+                printf("fileName: %s\n", currentFileName);
+                
+
+                if((objFile = fopen(objFileName,"w")) != NULL){
+                    if(!buildObjFile(objFile)) return FALSE;
+                    else{
+                        printf("File %s Processed successfully\n", asFileName);
+                    }
+                }else{
+                    yieldError("FileOpenError", objFile);
+                    return FALSE;
+                }
             }else{
                 fclose(amFile);
                 remove(amFileName);
                 return FALSE;
             }
         }else{
-            yieldError("amFileOpenError", amFileName);
+            yieldError("FileOpenError", amFileName);
             return FALSE;
         }
     }else{
-        yieldError("asFileOpenError", asFileName);
+        yieldError("FileOpenError", asFileName);
         return FALSE;
     }
 

@@ -248,4 +248,17 @@ Bool isUnresolvedLabel(char *line, char **labelVar){
     return FALSE;
 }
 
+void updateLabelsTableAddrs(void){
+    Label *temp;
+
+    temp = getLabelsTableHead();
+
+    while (temp != NULL)
+    {
+        if(temp->type == DATA_SYMBOL){
+            temp->address += IC;
+        }
+        temp = temp->next;
+    }
+}
 

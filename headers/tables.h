@@ -36,6 +36,7 @@ Bool allocInstructionImg(int srcAddMode, int destAddMode);
 unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are);
 unsigned short buildRegWord(int srcReg, int destReg);
 void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img);
+void updateDataImgAddrs(void);
 
 
 #endif

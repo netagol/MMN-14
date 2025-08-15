@@ -633,3 +633,31 @@ void printBinary(short int word){
 }
 
 
+void binToFourBase(unsigned short num, char *word){
+    unsigned short res, mask = FOUR_BASE_MASK_START;
+    int  i;
+
+
+    for(i = 0; i < FOUR_BASE_ITERATIONS + 1; i++){
+        res = num & mask;
+        res >>= ((FOUR_BASE_ITERATIONS - i) * 2);
+        switch(res){
+            case 0:
+                word[i] = 'a';
+                break;
+            case 1:
+                word[i] = 'b';
+                break;
+            case 2:
+                word[i] = 'c';
+                break;
+            case 3:
+                word[i] = 'd';
+                break;
+        }
+        mask >>= 2;
+    }
+    word[i] = '\0';
+}
+
+

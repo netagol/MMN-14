@@ -3,6 +3,10 @@
 
 #include "headers.h"
 
+#define FOUR_BASE_MASK_START 768
+#define FOUR_BASE_ITERATIONS 4
+#define FOUR_BASE_WORD_LEN 6
+
 void setFirstPass(void);
 void setSecondPass(void);
 int getCurrentPass(void);
@@ -37,6 +41,7 @@ void printBinary(short int word);
 void trimWhiteSpaces(char **line);
 void trimWhiteSpacesAtStart(char **line);
 Bool isCodeCommand(char *command);
+void binToFourBase(unsigned short num, char *word);
 
 
 #endif

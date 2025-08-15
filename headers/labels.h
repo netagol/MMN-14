@@ -40,6 +40,7 @@ void printLabelTable(Label *temp);
 Label *getLabelByName(char *name);
 Bool addLabelPlaceholder(char *arg);
 Bool isUnresolvedLabel(char *line ,char **labelVar);
+void updateLabelsTableAddrs(void);
 
 
 #endif

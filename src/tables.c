@@ -260,3 +260,10 @@ void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *im
     increaseIC(1);
 }
 
+void updateDataImgAddrs(void){
+    int i;
+    for(i = 0; i < DC; i++){
+        dataImage[i].address += IC;
+    }
+}
+

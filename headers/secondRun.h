@@ -5,6 +5,7 @@
 
 Bool secondRun(FILE *amfile);
 Bool readLineSecondPass(char *line);
+Bool buildObjFile(FILE *file);
 
 
 #endif

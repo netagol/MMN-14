@@ -46,5 +46,23 @@ Bool readLineSecondPass(char *line){
    return TRUE;
 }
 
+Bool buildObjFile(FILE *file){
+    unsigned short i;
+    char add[FOUR_BASE_WORD_LEN], word[FOUR_BASE_WORD_LEN];
+    fprintf(file,"%-4d  %6d\n\n",IC - IC_START,DC);
+
+    for(i = 0; i < IC - IC_START; i++){
+        binToFourBase(i + IC_START,add);
+        binToFourBase(instructionsImage[i], word);
+        fprintf(file,"%-6s %6s\n",add, word);
+
+    }
+    for(i = 0 ;i < DC ; i++){
+        binToFourBase(dataImage[i].address,add);
+        binToFourBase(dataImage[i].word, word);
+        fprintf(file,"%-6s %6s\n",add, word);
+    }
+    return TRUE;
+}
 
 

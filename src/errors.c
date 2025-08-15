@@ -11,9 +11,8 @@ void setErrFlag(Bool flag){
 }
 
 Err errorTable[] = {
-    {"amFileOpenError","%s File could not be opened or created, try another file"},
+    {"FileOpenError","%s File could not be opened or created, try another file"},
     {"missingFileName","Missing name for %s file. %s File could not be created"},
-    {"asFileOpenError","%s File could not be opened, try another file"},
     {"missingMcroName","Missing macro name"},
     {"extraChrAfterMcroName","Extra characters after macro name"},
     {"tooManyMcros","There are too many macros in the .as file. The maximum allowed number of macros is %d"},
