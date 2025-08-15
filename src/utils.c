@@ -14,12 +14,20 @@ void setSecondPass(void){
     currentPass = SECOND_PASS;
 }
 
+int getCurrentPass(void){
+    return currentPass;
+}
+
 void increaseRowNum(void){
     rowNum ++;
 }
 
 void rewindRowNum(void){
     rowNum = 1;
+}
+
+void rewindIC(void){
+    IC = IC_START;
 }
 
 void increaseDC(int num){
@@ -106,7 +114,10 @@ Bool isLabelName(char *word){
     temp = getLabelsTableHead();
     printf("2\n");
     while (temp != NULL){
-        if (!strcmp(word,temp->name)) return TRUE;
+        if (!strcmp(word,temp->name)) {
+            printf("return true isLabelName\n");
+            return TRUE;
+        }
 
         temp = temp->next;
     }
@@ -152,7 +163,12 @@ Bool isLabelDefinition(char *line, char **word, int pass){
                 return FALSE;
             }
         }else{
-            if(isLabelName(temp)) return TRUE;
+            strncpy(labelName,temp,(strlen(temp)-1));
+            labelName[strlen(temp)-1] = '\0';
+            if(isLabelName(labelName)){
+                printf("return true\n");
+                return TRUE;
+            } 
         }
     }else{
         return FALSE;
@@ -188,23 +204,32 @@ void trimWhiteSpacesAtStart(char **line){
 }
 
 void getNextWord(char *line, char **command){
-    char *lineCopy, *opName;
-    printf("inside getNextWord\n");
+    char *lineCopy = NULL, *opName = NULL;
+    printf("inside getNextWord, line:%s, strlen(line): %lu\n", line, strlen(line));
 
-    if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
+    if((lineCopy = malloc((strlen(line) + 1) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return;
     }
-    
-    strcpy(lineCopy, line);
+    printf("1\n");
+    strncpy(lineCopy, line, strlen(line));
+    printf("2\n");   
 
     opName = strtok(lineCopy, " \t\n");
-    if((*command = malloc(strlen(opName)*sizeof(char))) == NULL){
+    if (!opName){
+        *command = NULL;
+        free(lineCopy);
+        yieldError("noNextWord");
+        return;
+    }
+
+    if((*command = malloc((strlen(opName) + 1)*sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return;
     }
+    printf("3\n");
     strcpy(*command,opName);
-    
+    printf("4\n");
     free(lineCopy);
     printf("outside getNextWord\n");
 }

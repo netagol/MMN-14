@@ -5,16 +5,16 @@ Operation opTable[OP_TABLE_SIZE] = {
     {"cmp",  1,  2, {0,1,2,3,NULL_ADDRESSING},{0,1,2,3,NULL_ADDRESSING}},
     {"add",  2,  2, {0,1,2,3,NULL_ADDRESSING},{1,2,3,NULL_ADDRESSING}},
     {"sub",  3,  2, {0,1,2,3,NULL_ADDRESSING},{1,2,3,NULL_ADDRESSING}},
-    {"not",  4,  1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"clr",  5,  1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"lea",  6,  2, {1,2}                    ,{1,2,3}},
-    {"inc",  7,  1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"dec",  8,  1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"jmp",  9,  1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"bne",  10, 1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"red",  11, 1, {NULL_ADDRESSING}        ,{1,2,3}},
-    {"prn",  12, 1, {NULL_ADDRESSING}        ,{0,1,2,3}},
-    {"jsr",  13, 1, {NULL_ADDRESSING}        ,{1,2,3}},
+    {"not",  4,  1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"clr",  5,  1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"lea",  6,  2, {1,2,NULL_ADDRESSING}    ,{1,2,3,NULL_ADDRESSING}},
+    {"inc",  7,  1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"dec",  8,  1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"jmp",  9,  1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"bne",  10, 1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"red",  11, 1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
+    {"prn",  12, 1, {NULL_ADDRESSING}        ,{0,1,2,3,NULL_ADDRESSING}},
+    {"jsr",  13, 1, {NULL_ADDRESSING}        ,{1,2,3,NULL_ADDRESSING}},
     {"rts",  14, 0, {NULL_ADDRESSING}        ,{NULL_ADDRESSING}},
     {"stop", 15, 0, {NULL_ADDRESSING}        ,{NULL_ADDRESSING}}
 };
@@ -67,7 +67,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line, int pass){
             return FALSE;
         }
 
-        strcpy(lineCopy,line);
+        strncpy(lineCopy,line,strlen(line));
 
         rest = strtok(lineCopy, " \n\t"); /*extract the command*/
         if((rest = strtok(NULL, " \n\t")) != NULL){
@@ -79,6 +79,7 @@ Bool handleZeroArgsOpp(Operation *opp, char *line, int pass){
         return TRUE;
     }else{
         increaseIC(ONE_IMG_WORD);
+        return TRUE;
     }
 
     
@@ -94,7 +95,8 @@ Bool handleOneArgOpp(Operation *opp, char *line, int pass){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    strcpy(lineCopy,line);
+    strncpy(lineCopy,line,strlen(line));
+
     if(!parseOneOperand(lineCopy,&dest)){
         yieldError("invalidArgsForCommand", opp->name);
         free(lineCopy);
@@ -129,7 +131,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line, int pass){
         return FALSE;
     }
 
-    strcpy(lineCopy,line);
+    strncpy(lineCopy,line, strlen(line));
 
     if(!parseTwoOperands(lineCopy, &src, &dest)){
         yieldError("invalidArgsForCommand", opp->name);
@@ -137,6 +139,7 @@ Bool handleTwoArgsOpp(Operation *opp, char *line, int pass){
         return FALSE;
     }
 
+    printf("src: %s, dest: %s\n",src,dest);
     srcAddMode = getAddressingMode(src);
     destAddMode = getAddressingMode(dest);
     printf("srcAddrMode: %d, destAddrMode: %d\n", srcAddMode,destAddMode);
@@ -166,7 +169,7 @@ Bool parseOneOperand(char *line, char **dest){
         return FALSE;
     }
     printf("2\n");
-    strcpy(lineCopy,line);
+    strncpy(lineCopy,line, strlen(line));
     printf("3\n");
     arg = strtok(lineCopy," \t"); /*remove the command*/
     printf("4\n");
@@ -184,7 +187,7 @@ Bool parseOneOperand(char *line, char **dest){
     }
     printf("7\n");
 
-    strcpy(*dest,arg);
+    strncpy(*dest,arg,strlen(arg));
     printf("8\n");
 
     free(lineCopy);
@@ -201,7 +204,7 @@ Bool parseTwoOperands(char *line, char **src, char **dest){
         return FALSE;
     }
 
-    strcpy(lineCopy,line);
+    strncpy(lineCopy,line, strlen(line));
 
     tempSrc = strtok(lineCopy, " \t"); /*remove the command*/
     printf("1. tempsrc: %s\n", tempSrc);
@@ -311,7 +314,7 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
 
     if(op != NULL){
         if(op->numOfArgs == 2){
-            while (op->leagalSrcModes[i] != NULL_ADDRESSING)
+            while (op->leagalSrcModes[0] != NULL_ADDRESSING)
             {
                 if(srcAddrMode == op->leagalSrcModes[i]){
                     srcValid = TRUE;
@@ -327,7 +330,7 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
 
         if((op->leagalDestModes[0] != NULL_ADDRESSING)){
             i = 0;
-            while ((op->leagalDestModes[i]))
+            while ((op->leagalDestModes[i]) != NULL_ADDRESSING)
             {
                 if(destAddrMode == op->leagalDestModes[i]){
                     destValid = TRUE;
@@ -341,11 +344,11 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
             }
         }
 
+        printf("srcValid? %d, destValid? %d\n", srcValid,destValid);
         if (srcValid && destValid)
         {
             return TRUE;
         }
-        
 
     }else{
         return FALSE;
@@ -371,11 +374,12 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
     long val, addr;
     int s, d, rowReg, colReg;
     Bool isExt;
-    char label[MAX_LABEL_NAME];
+    char *label;
     s = d = val = addr =0;
+    
+    printf("Inside encodeInstruction, src: %s, dest %s\n", src,dest);
 
     if(pass == FIRST_PASS){
-        printf("Inside encodeInstruction\n");
         printf("1\n");
         if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
         printf("2\n");
@@ -410,7 +414,7 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
         }else if(srcAddMode == MATRIX_ADDRESSING){
             printf("5.1\n");
             /*first word - address*/
-            if(!parseMatrix(src, label, &rowReg, &colReg)) return FALSE;
+            if(!parseMatrix(src, &label, &rowReg, &colReg)) return FALSE;
             printf("5.2 addr: %ld\n", addr);
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
             printf("5.3, addr: %ld\n", addr);
@@ -445,7 +449,7 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
         }else if(destAddMode == MATRIX_ADDRESSING){
             printf("5.1\n");
             /*first word - address*/
-            if(!parseMatrix(dest, label, &rowReg, &colReg)) return FALSE;
+            if(!parseMatrix(dest, &label, &rowReg, &colReg)) return FALSE;
             printf("5.2 addr: %ld\n", addr);
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
             printf("5.3, addr: %ld\n", addr);
@@ -464,7 +468,8 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
 
 
     }else if(pass == SECOND_PASS){
-        increaseIC(ONE_IMG_WORD);/*pass the command*/
+        printf("second pass encode, IC: %d\n", IC);
+        increaseIC(ONE_IMG_WORD);/*skip the command*/
 
         if(srcAddMode == REGISTER_ADDRESSING && destAddMode == REGISTER_ADDRESSING){
             increaseIC(ONE_IMG_WORD);
@@ -474,28 +479,36 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
         if(srcAddMode == INSTANT_ADDRESSING){
             increaseIC(ONE_IMG_WORD);
         }else if(srcAddMode == DIRECT_ADDRESSING){
-            if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+            if(!(resolveLabel(src, &addr, &isExt))) return FALSE;
+            instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
             increaseIC(ONE_IMG_WORD);
             
         }else if(srcAddMode == MATRIX_ADDRESSING){
             printf("5.1\n");
+            if(!parseMatrix(src, &label, &rowReg, &colReg)) return FALSE;
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            printf("overriting:, IC: %d, addr: %d\n", IC, (unsigned short)addr);
+            instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
             increaseIC(TWO_IMG_WORDS);
 
         }else if(srcAddMode == REGISTER_ADDRESSING){
             increaseIC(ONE_IMG_WORD);
         }
+        printf("5.2\n");
 
         /*Destination Operand*/
         if(destAddMode == INSTANT_ADDRESSING){
             increaseIC(ONE_IMG_WORD);
         }else if(destAddMode == DIRECT_ADDRESSING){
-            if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
+            if(!(resolveLabel(dest, &addr,&isExt))) return FALSE;
+            instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
             increaseIC(ONE_IMG_WORD);
             
         }else if(destAddMode == MATRIX_ADDRESSING){
             printf("5.1\n");
+            if(!parseMatrix(dest, &label, &rowReg, &colReg)) return FALSE;
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
+            instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
             increaseIC(TWO_IMG_WORDS);
 
         }else if(destAddMode == REGISTER_ADDRESSING){
@@ -510,7 +523,24 @@ int parseRegister(char *arg){
 }
 
 long parseInstant(char *arg){
-    return atol(arg+1); /*skip the # char*/
+    char *rest;
+    long val;
+
+    val = strtol(arg+1,&rest,10);
+
+    printf("val: %ld, rest: %s\n",val, rest);
+
+    if(rest == arg+1){
+        yieldError("noNumbersFound", arg);
+        return INVALID_ADDRESSING;
+    }
+
+    if(*rest != '\0'){
+        yieldError("illeagalNumberInstant", arg);
+        return INVALID_ADDRESSING;
+    }
+    
+    return val;
 }
 
 Bool resolveLabel(char *arg, long *addr, Bool *isExt){
@@ -528,17 +558,18 @@ Bool resolveLabel(char *arg, long *addr, Bool *isExt){
                 *addr = temp->address;
                 printf("addr: %ld\n", *addr);
                 *isExt = temp->type == EXTERN_SYMBOL ? TRUE : FALSE;
+                printf("return true\n");
                 return TRUE;
             }
         }else return FALSE;
 }
 
-Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
+Bool parseMatrix(char *arg, char **label, int *rowReg, int *colReg){
     char *firstOpen, *firstClose, *secondOpen, *secondClose;
     int labelLen;
     char regStr[5];
 
-    printf("inside parseMatrix\n");
+    printf("inside parseMatrix, arg: %s\n", arg);
 
     if(!arg) return FALSE;
 
@@ -573,8 +604,14 @@ Bool parseMatrix(char *arg, char *label, int *rowReg, int *colReg){
     }
 
     /*extract label name*/
-    strncpy(label, arg, labelLen);
-    label[labelLen] = '\0';
+    if((*label = malloc((labelLen + 1) * sizeof(char))) == NULL){
+        yieldError("memoryAllocationFailed");
+        return FALSE;
+    }
+    printf("1. labelLen: %d\n", labelLen);
+    strncpy(*label, arg, labelLen);
+    printf("1.1, Label: %s, strlen(label): %lu\n", *label, strlen(*label));
+    printf("2\n");
 
     /*extract first reg*/
     strncpy(regStr,firstOpen +1, firstClose - firstOpen - 1);

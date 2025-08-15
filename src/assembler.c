@@ -4,7 +4,7 @@
 int main(void){
 
     char asFileName[MAX_FILE_NAME];
-    strcpy(asFileName,"tests/demoInput.as");
+    strcpy(asFileName,"tests/mov.as");
     if (!processFile(asFileName))
     {
         yieldError("fileNotProcessed",asFileName);
@@ -36,15 +36,19 @@ Bool processFile(char *asFileName){
                 updateCurrentFileName(amFileName);
                 rewindRowNum();
                 if(!firstRun(amFile)) return FALSE;
+                printf("FIRST RUN SUMMARY, Errors: %d\n", errFlag);
                 printLabelTable(getLabelsTableHead());
                 printDataImg();
                 printInstructionImg();
 
                 /*prep for second pass*/
                 rewindRowNum();
+                rewindIC();
                 rewind(amFile);
+
                 if(getErrFlag()) return FALSE;
                 if(!secondRun(amFile)) return FALSE;
+                printf("SECOND RUN SUMMARY\n");
                 printLabelTable(getLabelsTableHead());
                 printDataImg();
                 printInstructionImg();

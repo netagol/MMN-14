@@ -19,6 +19,7 @@ Bool isLabelName(char *word);
 Bool isLabelDefinition(char *line, char **word, int pass);
 void increaseRowNum(void);
 void rewindRowNum(void);
+void rewindIC(void);
 void increaseDC(int num);
 void increaseIC(int num);
 int getRowNum(void);

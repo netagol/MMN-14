@@ -18,7 +18,7 @@ Bool firstRun(FILE *amFile){
         }
         increaseRowNum();
     }
-    printf("***Labels Tabel***\n");
+
     return TRUE;
 }
 

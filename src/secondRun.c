@@ -11,7 +11,7 @@ Bool secondRun(FILE *amFile){
     {
         if (*line != '\n' && line[0] != ';')
         {
-            printf("[%d] Line: %s \n",getRowNum(),line);
+            printf("[pass: %d, rowNum: %d] Line: %s \n", getCurrentPass(), getRowNum(), line);
             if(!readLineSecondPass(line)) return FALSE;
         }
         increaseRowNum();
@@ -31,16 +31,19 @@ Bool readLineSecondPass(char *line){
     strcpy(lineCopy,line);
 
     if(isLabelDefinition(lineCopy,&label,SECOND_PASS)){
-        getNextWord(lineCopy, &command);
+        getNextWord(lineCopy + strlen(label)+1, &command);
+    }else{
+       getNextWord(lineCopy, &command); 
+    }
 
-        if(isCodeCommand(command)){
+    if(isCodeCommand(command)){
+        printf("code command\n");
             currOp = getOperationByName(command);
             if(currOp->numOfArgs >= 0){
                 return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0), SECOND_PASS);
             }
         }
-    }
-/* add here if not label def*/    
+   return TRUE;
 }
 
 

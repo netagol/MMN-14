@@ -153,6 +153,7 @@ int getLabelType(void){
 
 void printLabelTable(Label *temp){
     if(temp == NULL){
+        printf("***Labels Tabel***\n");
         return;
     }
     printLabelTable(temp->next);
