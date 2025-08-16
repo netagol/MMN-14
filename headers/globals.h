@@ -3,7 +3,8 @@
 
 #define MAX_LINE_LEN 100
 #define MAX_ALLOWED_LINE_LEN 80
-#define MAX_FILE_NAME 100
+#define MAX_FILE_NAME 253
+#define MAX_POSTFIX 3
 #define LAST_REG_NUM 7
 #define FIRST_REG_NUM 1
 #define IC_START 100

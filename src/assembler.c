@@ -1,15 +1,35 @@
 #include "../headers/headers.h"
 
 
-int main(void){
-
-    char asFileName[MAX_FILE_NAME];
-    strcpy(asFileName,"tests/demoInput.as");
-    if (!processFile(asFileName))
-    {
-        yieldError("fileNotProcessed",asFileName);
+int main(int argc, char *argv[]){
+    char asFileName[MAX_FILE_NAME + MAX_POSTFIX];
+    int i;
+    if(argc == 1){
+        yieldError("missingFileNames");
+        return 0;
     }
-    return 0;
+
+    for (i = 1; i < argc; i++)
+    {
+        if(strlen(argv[i]) > (MAX_FILE_NAME + MAX_POSTFIX)){
+            yieldError("fileNameTooLong", argv[i]);
+            yieldError("fileNotProcessed",argv[i]);
+        }else{
+            sprintf(asFileName,"filesToProcess/%s.as",argv[i]);
+
+            if(!processFile(asFileName))
+            {
+                yieldError("fileNotProcessed",asFileName);
+                prepareForNextFile();
+            }else{
+                prepareForNextFile();
+            }
+        }
+    }
+    printf("All files processed, quitting the program\n");
+
+   return 0;
+    
 } /*main*/
 
 
@@ -35,8 +55,10 @@ Bool processFile(char *asFileName){
 
                 updateCurrentFileName(amFileName);
                 rewindRowNum();
-                if(!firstRun(amFile)) return FALSE;
-                printf("FIRST RUN SUMMARY, Errors: %d\n", errFlag);
+                if(!firstRun(amFile)){
+                    return FALSE;
+                }
+                printf("FIRST RUN SUMMARY, Errors: %d, fileName: %s\n", errFlag, getCurrentFileName());
                 printLabelTable(getLabelsTableHead());
                 printDataImg();
                 printInstructionImg();
@@ -46,12 +68,17 @@ Bool processFile(char *asFileName){
                 rewindIC();
                 rewind(amFile);
                 
-                if(getErrFlag()) return FALSE;
-                if(!secondRun(amFile)) return FALSE;
+                if(getErrFlag()) {
+                    return FALSE;
+                }
+                if(!secondRun(amFile)) {
+                    return FALSE;
+                }
                 printf("SECOND RUN SUMMARY\n");
                 printLabelTable(getLabelsTableHead());
                 printDataImg();
-                printInstructionImg();  
+                printInstructionImg(); 
+                fclose(amFile); 
 
                 createNewFileName(amFileName,objFileName,".ob");
                 updateCurrentFileName(objFileName);
@@ -59,15 +86,19 @@ Bool processFile(char *asFileName){
                 
 
                 if((objFile = fopen(objFileName,"w")) != NULL){
-                    if(!buildObjFile(objFile)) return FALSE;
+                    if(!buildObjFile(objFile)){
+                        return FALSE;
+                    }
                     else{
                         printf("File %s Processed successfully\n", asFileName);
                     }
+                    fclose(objFile);
                 }else{
                     yieldError("FileOpenError", objFile);
                     return FALSE;
                 }
             }else{
+                fclose(asFile);
                 fclose(amFile);
                 remove(amFileName);
                 return FALSE;
@@ -82,6 +113,5 @@ Bool processFile(char *asFileName){
     }
 
     return TRUE;
-
 }
 

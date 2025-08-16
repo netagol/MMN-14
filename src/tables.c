@@ -1,7 +1,6 @@
 #include "../headers/tables.h"
 
 DataImageEntry *dataImage = NULL;
-int dataImageCap;
 unsigned short *instructionsImage;
 
 Bool initiateDataImage(void){
@@ -12,8 +11,6 @@ Bool initiateDataImage(void){
         yieldError("dataImgInitFailed");
         return FALSE;
     }
-
-    dataImageCap = INITIAL_CAPACITY;
 
     return TRUE;
 }
@@ -33,7 +30,6 @@ Bool addDataToDataImage(char *line){
     printf("inside addDataToDataImage\n");
 
     strcpy(lineCopy,line);
-    printf("1\n");
 
     if (getDC() == 0)
     {
@@ -42,10 +38,8 @@ Bool addDataToDataImage(char *line){
             return FALSE;
         }
     }
-    printf("2\n");
 
     argCount = countArgs(line);
-    printf("arg count: %d\n", argCount);
     
     if ((dataImage = realloc(dataImage, (getDC() + argCount) * sizeof(DataImageEntry))) == NULL)
     {
@@ -53,24 +47,18 @@ Bool addDataToDataImage(char *line){
         free(lineCopy);
         return FALSE;
     }
-    printf("3\n");
     
     num_s = strtok(lineCopy,",");
-    printf("4\n");
 
     while (num_s != NULL)
     {
         num_i = (short int)atoi(num_s);
-        printf("while, num_i: %d, DC: %d\n", num_i, getDC());
         dataImage[DC].word = num_i;
         dataImage[DC].address = getDC();
         increaseDC(1);
-        printf("num = %d, argCount: %d\n", num_i, argCount);
 
         num_s = strtok(NULL, ",");
     }
-
-    printf("5\n");
 
     free(lineCopy);
     
@@ -86,7 +74,6 @@ Bool addStrToDataImage(char *line){
     if ((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL)
     {
         yieldError("memoryAllocationFailed");
-        free(lineCopy);
         return FALSE;
     }
     
@@ -109,15 +96,11 @@ Bool addStrToDataImage(char *line){
     }
 
     for(i = 1; i < strlen(lineCopy) -2; i++){
-        printf("word: %c, (short int)word: %d\n", lineCopy[i], (short int)lineCopy[i]);
         dataImage[DC].word = (short int)(lineCopy[i]);
         dataImage[DC].address = getDC();
         increaseDC(1);
     }
 
-    
-
-    printf("retrun true\n");
     free(lineCopy);
 
     return TRUE;
@@ -129,24 +112,17 @@ Bool addMatToDataImage(int matSize, int argsCount, int *matNums){
     int i;
 
     printf("inside addMatToDataImage, matSize: %d, argsCount: %d\n", matSize,argsCount);
-    printf("1\n");
 
     if (getDC() == 0)
     {
-        printf("1.1\n");
         if(!initiateDataImage()) return FALSE;
     }else{
-        printf("1.1.1\n"); 
         if ((dataImage = realloc(dataImage, (getDC() + matSize) * sizeof(DataImageEntry))) == NULL)
         {
             yieldError("dataImgReallocFailed");
             return FALSE;
         }
-        printf("1.1.2\n");
     }
-    printf("2\n");
-
-    printf("3\n");
 
     if (argsCount){
         for(i = 0; i < argsCount; i++){
@@ -156,7 +132,6 @@ Bool addMatToDataImage(int matSize, int argsCount, int *matNums){
             increaseDC(1);
         }
     }
-    printf("4\n");
     
     return TRUE;
     
@@ -237,25 +212,20 @@ unsigned short buildFirstWord(int opCode, int srcMode, int dstMode, AREFlag are)
     w |= ((dstMode & TWO_BIT_MASK) << 2);
     w |= (are & TWO_BIT_MASK);
 
-    printf("w: %d\n", w);
-
     return w;
 }
 
 unsigned short buildRegWord(int srcReg, int destReg){
     unsigned short w = 0;
 
-    printf("inside buildRegWord, src: %d, dest %d\n",srcReg,destReg);
     if(destReg >= 0) w |= ((destReg & FOUR_BIT_MASK) << 2);
     if(srcReg >= 0) w |= ((srcReg & FOUR_BIT_MASK) << 6);
-    printf("w: %d\n",(short)w);
     return w;
 }
 
 void addWordToInstractionImg(unsigned short val, AREFlag are, unsigned short *img){
     unsigned short w; 
     w = (val & CLEAR_ARE_MASK) | (are & TWO_BIT_MASK);
-    printf("addword w: %d, IC: %d\n", w,getIC());
     img[getIC() - IC_START] = w;
     increaseIC(1);
 }
@@ -266,4 +236,6 @@ void updateDataImgAddrs(void){
         dataImage[i].address += IC;
     }
 }
+
+
 

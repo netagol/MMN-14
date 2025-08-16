@@ -42,6 +42,7 @@ void trimWhiteSpaces(char **line);
 void trimWhiteSpacesAtStart(char **line);
 Bool isCodeCommand(char *command);
 void binToFourBase(unsigned short num, char *word);
+void prepareForNextFile(void);
 
 
 #endif

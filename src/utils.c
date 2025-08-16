@@ -37,6 +37,10 @@ void increaseIC(int num){
     IC += num;
 }
 
+void rewindDC(void){
+    DC = 0;
+}
+
 int getRowNum(void){
     return rowNum;
 }
@@ -46,7 +50,6 @@ int getIC(void){
 }
 
 int getDC(void){
-    printf("getDC\n");
     return DC;
 }
 
@@ -110,18 +113,14 @@ Bool isOppName(char *word){
 Bool isLabelName(char *word){
     Label *temp;
     printf("inside isLabelName, word: %s\n", word);
-    printf("1\n");
     temp = getLabelsTableHead();
-    printf("2\n");
     while (temp != NULL){
         if (!strcmp(word,temp->name)) {
-            printf("return true isLabelName\n");
             return TRUE;
         }
 
         temp = temp->next;
     }
-    printf("3\n");
 
     return FALSE;
 }
@@ -132,19 +131,14 @@ Bool isLabelDefinition(char *line, char **word, int pass){
 
     printf("INSIDE isLabelDefinition\nLine: %s\n",line);
 
-    printf("1\n");
     if(strchr(line,':') != NULL){
-        printf("2\n");
         strcpy(lineCopy,line);
-        printf("3\n");
         temp = strtok(lineCopy," \t\n");
-        printf("temp: %s\n", temp);
         
         if(pass == FIRST_PASS){
             if(*(temp+(strlen(temp)-1)) == ':'){
                 strncpy(labelName,temp,(strlen(temp)-1));
                 labelName[strlen(temp)-1] = '\0';
-                printf("labelName: %s\n", labelName);
 
                 if(isLabelNameValid(labelName)){
                     if((*word = malloc((strlen(labelName) * sizeof(char)) + 1)) == NULL){
@@ -153,7 +147,6 @@ Bool isLabelDefinition(char *line, char **word, int pass){
                     }
                     strcpy(*word,labelName);
                     (*word)[strlen(labelName)] = '\0';
-                    printf("return true word: %s\n", *word);
                     return TRUE;
                 }else{
                     return FALSE;
@@ -166,7 +159,13 @@ Bool isLabelDefinition(char *line, char **word, int pass){
             strncpy(labelName,temp,(strlen(temp)-1));
             labelName[strlen(temp)-1] = '\0';
             if(isLabelName(labelName)){
-                printf("return true\n");
+                if((*word = malloc((strlen(labelName) * sizeof(char)) + 1)) == NULL){
+                        yieldError("labelAllocError");
+                        return FALSE;
+                }
+                strcpy(*word,labelName);
+                (*word)[strlen(labelName)] = '\0';
+
                 return TRUE;
             } 
         }
@@ -211,9 +210,7 @@ void getNextWord(char *line, char **command){
         yieldError("memoryAllocationFailed");
         return;
     }
-    printf("1\n");
     strncpy(lineCopy, line, strlen(line));
-    printf("2\n");   
 
     opName = strtok(lineCopy, " \t\n");
     if (!opName){
@@ -227,11 +224,8 @@ void getNextWord(char *line, char **command){
         yieldError("memoryAllocationFailed");
         return;
     }
-    printf("3\n");
     strcpy(*command,opName);
-    printf("4\n");
     free(lineCopy);
-    printf("outside getNextWord\n");
 }
 
 Bool validateCommand(char *command){
@@ -385,14 +379,10 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
 
     trimWhiteSpaces(&lineCopy);
 
-    printf("1\n");
 
     if((firstOpen = strchr(lineCopy,'['))){
-        printf("1.1\n");
         if((firstClose = strchr(lineCopy,']'))){
-            printf("1.2\n");
             if(firstOpen < firstClose){
-                printf("1.3\n");
                 if ((num1_s = malloc(firstClose - firstOpen)) == NULL)
                 {
                     yieldError("memoryAllocationFailed");
@@ -401,23 +391,16 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
                 }
                 
                 strncpy(num1_s,firstOpen + 1, (firstClose - firstOpen - 1));
-                printf("1.4\n");
-                printf("2\n");
                 if((secondOpen = strchr(firstClose + 1,'['))){
-                    printf("2.1\n");
                     if ((secondClose = strchr(firstClose + 1, ']'))){
-                        printf("2.2\n");
                         if(secondOpen < secondClose){
-                            printf("2.3\n");
                             if((num2_s = malloc(secondClose - secondOpen)) == NULL){
                                 yieldError("memoryAllocationFailed");
                                 free(lineCopy);
                                 free(num1_s);
                                 return FALSE;
                             }
-                            printf("2.4\n");
                             strncpy(num2_s,secondOpen + 1, (secondClose - secondOpen - 1));
-                            printf("2.5\n");
                             num1_i = (int)strtol(num1_s, &num1_end, 10);
                             num2_i = (int)strtol(num2_s, &num2_end, 10);
                             
@@ -425,17 +408,10 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
                                 *matSize = (num1_i + num2_i);
                                 if(*(secondClose + 1) != '\0'){
                                     if(vaildateCommas(secondClose + 1)){
-                                        printf("3\n");
-                                        printf("argsCount: %d\n", *argsCount);
                                         num_s = strtok(secondClose + 1, ",");
-                                        printf("4\n");
 
                                         while (num_s != NULL){
-                                            printf("argsCount: %d\n", *argsCount);
-                                            printf("4.1\n");
                                             num_i = strtol(num_s, &end, 10);
-                                            printf("4.2\n");
-                                            printf("4.3\n");
                                             if((end = malloc(strlen(num_s)*sizeof(char))) == NULL){
                                                 yieldError("memoryAllocationFailed");
                                                 free(lineCopy);
@@ -443,13 +419,11 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
                                                 free(num2_s);
                                                 return FALSE;
                                             }
-                                            printf("4.4\n");
 
                                             if(*end == '\0'){
                                                 num_s = strtok(NULL, ",");
                                                 free(end);
                                                 nums[(*argsCount)++] = num_i;
-                                                printf("4.5\n");
                                             }else{
                                                 yieldError("invalidNumArgInMat");
                                                 free(lineCopy);
@@ -459,7 +433,6 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
                                                 return FALSE;
                                             }
                                         }
-                                        printf("5\n");
                                         if (*argsCount > *matSize)
                                         {
                                             yieldError("tooManyNumbersInMatDef", *matSize, *argsCount);
@@ -472,14 +445,12 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
                                             }
                                             free(lineCopy);
                                             free(num1_s);
-                                            printf("retrun true mat1\n");
                                             return TRUE;
                                         }
                                     }
                                 }else{
                                     free(lineCopy);
                                     free(num1_s);
-                                    printf("retrun true mat2\n");
                                     return TRUE;
                                 }
                             }else{
@@ -504,7 +475,6 @@ Bool validateMatLine(char *line, int *argsCount, int *matSize, int matNums[MAX_A
         yieldError("matArrMissingOpeningBracket");
     }
 
-
     return FALSE;
 }
 
@@ -519,10 +489,8 @@ Bool validateStrLine(char *line){
 
     strcpy(lineCopy,line);
 
-    printf("Inside validateStrLine, line: %s, lineCopy: %s\n",line,lineCopy);
 
     trimWhiteSpaces(&lineCopy);
-    printf("Inside validateStrLine2, line: %s, lineCopy: %s\n",line,lineCopy);
     
 
     if (lineCopy[0] == '"')
@@ -535,7 +503,6 @@ Bool validateStrLine(char *line){
                     return FALSE;
                 }
             }
-            printf("return true\n");
             free(lineCopy);
             return TRUE;
 
@@ -658,6 +625,24 @@ void binToFourBase(unsigned short num, char *word){
         mask >>= 2;
     }
     word[i] = '\0';
+}
+
+void prepareForNextFile(void){
+    currentPass =0;
+    rewindDC();
+    rewindIC();
+    rewindRowNum();
+    errFlag = FALSE;
+    if(getLabelsTableHead() != NULL) freeLabelsTable();
+    if(dataImage){
+        free(dataImage);
+        dataImage = NULL;
+    } 
+    if(instructionsImage){
+        free(instructionsImage);
+        instructionsImage = NULL;
+    }
+
 }
 
 

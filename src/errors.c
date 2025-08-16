@@ -61,7 +61,9 @@ Err errorTable[] = {
     {"invalidMatrixRegister", "Invalid matrix register, the matrix register %s is not a vaild register"},
     {"noNextWord", "Could not find any word in the line"},
     {"illeagalNumberInstant", "The number in the argument %s is not a valid number"},
-    {"noNumbersFound", "No numbers were found after the # sign in the arg %s"}
+    {"noNumbersFound", "No numbers were found after the # sign in the arg %s"},
+    {"missingFileNames", "No file names entered, please enter file names to process. Try again"},
+    {"fileNameTooLong", "File name %s is too long. Please shorten it and try again"}
 
 };
 

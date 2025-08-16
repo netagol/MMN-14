@@ -30,7 +30,6 @@ Operation *getOperationByName(char *opName){
     for(i = 0; i < OP_TABLE_SIZE; i++){
         if(!strcmp(opName,opTable[i].name)){
             op = &(opTable[i]);
-            printf("return op\n");
             return op;
         }
     }
@@ -139,10 +138,8 @@ Bool handleTwoArgsOpp(Operation *opp, char *line, int pass){
         return FALSE;
     }
 
-    printf("src: %s, dest: %s\n",src,dest);
     srcAddMode = getAddressingMode(src);
     destAddMode = getAddressingMode(dest);
-    printf("srcAddrMode: %d, destAddrMode: %d\n", srcAddMode,destAddMode);
 
     if(!isValidAddrMode(opp->opCode, srcAddMode, destAddMode)){
         yieldError("illegalAddressingMode", opp->name);
@@ -163,35 +160,25 @@ Bool parseOneOperand(char *line, char **dest){
     char *lineCopy, *arg;
 
     printf("inside parseOneOperand\n");
-    printf("1\n");
     if((lineCopy = malloc(strlen(line) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    printf("2\n");
     strncpy(lineCopy,line, strlen(line));
-    printf("3\n");
     arg = strtok(lineCopy," \t"); /*remove the command*/
-    printf("4\n");
     if((arg = strtok(NULL, " \t\n")) == NULL){
         return FALSE;
     }
-    printf("5\n");
-
     trimWhiteSpaces(&arg);
-    printf("6\n");
 
     if(((*dest) = malloc(strlen(arg) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    printf("7\n");
 
     strncpy(*dest,arg,strlen(arg));
-    printf("8\n");
 
     free(lineCopy);
-    printf("9\n");
 
     return TRUE;
 }
@@ -207,20 +194,16 @@ Bool parseTwoOperands(char *line, char **src, char **dest){
     strncpy(lineCopy,line, strlen(line));
 
     tempSrc = strtok(lineCopy, " \t"); /*remove the command*/
-    printf("1. tempsrc: %s\n", tempSrc);
     if((tempSrc = strtok(NULL, ",")) == NULL){
         yieldError("noOperandFound");
         free(lineCopy);
         return FALSE;
     }
-    printf("2. tempsrc: %s\n", tempSrc);
-
     if((tempDest = strtok(NULL," \n\t")) == NULL){
         yieldError("noOperandFound");
         free(lineCopy);
         return FALSE;
     }
-    printf("2. dest: %s\n", tempDest);
 
     if(((*src) = malloc(strlen(tempSrc) * sizeof(char))) == NULL){
         yieldError("memoryAllocationFailed");
@@ -256,21 +239,15 @@ int getAddressingMode(char *arg){
     printf("inside getAddressingMode arg: %s\n", arg);
 
     if(arg[0] == 'r' && (arg[1] >= '0' && arg[1] <= '7')) return REGISTER_ADDRESSING;
-    printf("0\n");
     if(arg[0] == '#') return INSTANT_ADDRESSING;
-    printf("1\n");
     if(isMatrixFormat(arg)) return MATRIX_ADDRESSING;
-    printf("2\n");
     if(isLabelName(arg)) return DIRECT_ADDRESSING;
-    printf("3\n");
     if(isLabelNameValid(arg)){
-        printf("labelNameValid!\n");
         if(!addLabelPlaceholder(arg)){
             yieldError("labelNotAdded",arg);
             return INVALID_ADDRESSING;
         }else return DIRECT_ADDRESSING;
     }
-    printf("INVALID_ADDRESSING!\n");
     return INVALID_ADDRESSING;
 
 }
@@ -278,7 +255,6 @@ int getAddressingMode(char *arg){
 Bool isMatrixFormat(char *arg){
     char *firstOpen, *secondOpen, *matName;
 
-    printf("inside isMatrixFormat!\n");
 
     if((firstOpen = strchr(arg,'[')) != NULL){
         if((secondOpen = strchr(firstOpen + 1,'[')) != NULL){
@@ -289,7 +265,6 @@ Bool isMatrixFormat(char *arg){
 
             strncpy(matName,arg,(strlen(arg)-strlen(firstOpen)));
             trimWhiteSpaces(&matName);
-            printf("TRUE, matName: %s\n", matName);
             if(!isLabelName(matName)){
                 if(isLabelNameValid(matName)){
                     if(!addLabelPlaceholder(matName)){
@@ -300,7 +275,6 @@ Bool isMatrixFormat(char *arg){
             return TRUE;
         }
     }
-    printf("FALSE\n");
     return FALSE;
 }
 
@@ -310,7 +284,6 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
 
     printf("inside isValidAddrMode, opCode: %d, srcAdd: %d, destAdd: %d\n", opCode, srcAddrMode, destAddrMode);
     op = getOppByOpcode(opCode);
-    printOperation(op);
 
     if(op != NULL){
         if(op->numOfArgs == 2){
@@ -344,7 +317,6 @@ Bool isValidAddrMode(int opCode, int srcAddrMode, int destAddrMode){
             }
         }
 
-        printf("srcValid? %d, destValid? %d\n", srcValid,destValid);
         if (srcValid && destValid)
         {
             return TRUE;
@@ -380,13 +352,9 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
     printf("Inside encodeInstruction, src: %s, dest %s\n", src,dest);
 
     if(pass == FIRST_PASS){
-        printf("1\n");
         if(!allocInstructionImg(srcAddMode,destAddMode)) return FALSE;
-        printf("2\n");
         firstWord = buildFirstWord(opCode,srcAddMode, destAddMode, ARE_A);
-        printf("3 first Word = %d\n", firstWord);
         addWordToInstractionImg(firstWord, ARE_A, instructionsImage);
-        printf("4\n");
 
         /*Extra words*/
 
@@ -412,14 +380,10 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             if(!(resolveLabel(src, &addr,&isExt))) return FALSE;
             addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
         }else if(srcAddMode == MATRIX_ADDRESSING){
-            printf("5.1\n");
             /*first word - address*/
             if(!parseMatrix(src, &label, &rowReg, &colReg)) return FALSE;
-            printf("5.2 addr: %ld\n", addr);
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-            printf("5.3, addr: %ld\n", addr);
             addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
-            printf("5.4\n");
 
             /*second word - registers*/
             word = buildRegWord(rowReg, colReg);
@@ -442,19 +406,12 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             addWordToInstractionImg(word << 2, ARE_A, instructionsImage);
         }else if(destAddMode == DIRECT_ADDRESSING){
             if(!(resolveLabel(dest, &addr,&isExt))) return FALSE;
-            printf("direct addr: %ld\n", addr << 2);
-            printBinary((short)(addr << 2));
-            printf("\n");
             addWordToInstractionImg((unsigned short)(addr << 2), isExt ? ARE_E : ARE_A, instructionsImage);
         }else if(destAddMode == MATRIX_ADDRESSING){
-            printf("5.1\n");
             /*first word - address*/
             if(!parseMatrix(dest, &label, &rowReg, &colReg)) return FALSE;
-            printf("5.2 addr: %ld\n", addr);
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-            printf("5.3, addr: %ld\n", addr);
             addWordToInstractionImg((unsigned short)(addr <<2), isExt ? ARE_E : ARE_A, instructionsImage);
-            printf("5.4\n");
 
             /*second word - registers*/
             word = buildRegWord(rowReg, colReg);
@@ -484,17 +441,14 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             increaseIC(ONE_IMG_WORD);
             
         }else if(srcAddMode == MATRIX_ADDRESSING){
-            printf("5.1\n");
             if(!parseMatrix(src, &label, &rowReg, &colReg)) return FALSE;
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
-            printf("overriting:, IC: %d, addr: %d\n", IC, (unsigned short)addr);
             instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
             increaseIC(TWO_IMG_WORDS);
 
         }else if(srcAddMode == REGISTER_ADDRESSING){
             increaseIC(ONE_IMG_WORD);
         }
-        printf("5.2\n");
 
         /*Destination Operand*/
         if(destAddMode == INSTANT_ADDRESSING){
@@ -505,7 +459,6 @@ Bool encodeInstruction(int opCode, int srcAddMode, int destAddMode,char *src, ch
             increaseIC(ONE_IMG_WORD);
             
         }else if(destAddMode == MATRIX_ADDRESSING){
-            printf("5.1\n");
             if(!parseMatrix(dest, &label, &rowReg, &colReg)) return FALSE;
             if(!resolveLabel(label, &addr, &isExt)) return FALSE;
             instructionsImage[IC - IC_START] = (unsigned short)addr << 2;
@@ -528,7 +481,6 @@ long parseInstant(char *arg){
 
     val = strtol(arg+1,&rest,10);
 
-    printf("val: %ld, rest: %s\n",val, rest);
 
     if(rest == arg+1){
         yieldError("noNumbersFound", arg);
@@ -547,18 +499,13 @@ Bool resolveLabel(char *arg, long *addr, Bool *isExt){
     Label *temp;
 
     printf("inside resolveLabel, arg: %s\n", arg);
-    printf("1\n");
         if(isLabelName(arg)){
-            printf("2\n");
             if((temp = getLabelByName(arg)) == NULL){
                 yieldError("labelNotFound", arg);
                 return FALSE;
             }else{
-                printf("3, temp address: %ld\n", (long)temp->address);
                 *addr = temp->address;
-                printf("addr: %ld\n", *addr);
                 *isExt = temp->type == EXTERN_SYMBOL ? TRUE : FALSE;
-                printf("return true\n");
                 return TRUE;
             }
         }else return FALSE;
@@ -608,10 +555,7 @@ Bool parseMatrix(char *arg, char **label, int *rowReg, int *colReg){
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    printf("1. labelLen: %d\n", labelLen);
     strncpy(*label, arg, labelLen);
-    printf("1.1, Label: %s, strlen(label): %lu\n", *label, strlen(*label));
-    printf("2\n");
 
     /*extract first reg*/
     strncpy(regStr,firstOpen +1, firstClose - firstOpen - 1);
@@ -627,8 +571,6 @@ Bool parseMatrix(char *arg, char **label, int *rowReg, int *colReg){
     /*extract second reg*/
     strncpy(regStr,secondOpen +1, secondClose - secondOpen - 1);
     regStr[secondClose - secondOpen - 1] = '\0';
-
-    printf("regStr: %s\n", regStr);
     
     if(regStr[0] != 'r' || regStr[1] < '0' || regStr[1] > '7' || regStr[2] != '\0'){
         yieldError("invalidMatrixRegister", regStr);
@@ -636,8 +578,6 @@ Bool parseMatrix(char *arg, char **label, int *rowReg, int *colReg){
     }
 
     *colReg = regStr[1] - '0';
-
-    printf("rowReg: %d, colReg: %d\n", *rowReg, *colReg);
 
     return TRUE;
 }

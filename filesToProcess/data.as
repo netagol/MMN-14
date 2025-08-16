@@ -1,0 +1,4 @@
+LENGTH: .data 6,-9,15
+STR:    .string "abcdef"
+K:      .data 22
+STR2:    .string "abcdeff"

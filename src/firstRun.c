@@ -36,22 +36,18 @@ Bool readLineFirstPass(char *line){
     printf("line: %s\n", lineCopy);
 
     if(isUnresolvedLabel(lineCopy, &label)){
-        printf("readline, is unresolved\n");
         if(addLabelToLabelsTable(line,getLabelByName(label)))
         getNextWord(lineCopy + strlen(label) + 1, &command);
     }else if(isLabelDefinition(lineCopy, &label, FIRST_PASS))
     {
-        printf("Label: %s\nline: %s\n", label,lineCopy);
         addLabelToLabelsTable(lineCopy, NULL);
 
-        printf("line: %s, label: %s\n", lineCopy, label);
         getNextWord(lineCopy + strlen(label)+1, &command);
     }else{
         getNextWord(lineCopy, &command);
     }
 
 
-    printf("command123: %s\n",command);
 
     if(validateCommand(command)){
         if((commType = getCommandType(command))){
@@ -60,7 +56,6 @@ Bool readLineFirstPass(char *line){
             case DATA_COMMAND: return dataLineHelper(lineCopy, command);
 
             case CODE_COMMAND:
-                printf("CODE_COMMAND\n");
                 currOp = getOperationByName(command);
                 return oppRouter(currOp, lineCopy + (label != NULL ? strlen(label) +1 : 0), FIRST_PASS);
             

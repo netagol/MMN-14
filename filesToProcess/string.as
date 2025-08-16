@@ -1,0 +1,3 @@
+
+STR:    .string "abcdef"
+STR3:    .string "bla bla"

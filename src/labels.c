@@ -16,52 +16,39 @@ Bool addLabelToLabelsTable(char *line, Label *label){
     Label *temp;
 
     printf("INSIDE addLabelToLabelsTable\n");
-    printf("line: %s\n",line);
     labelName = NULL;
     temp = NULL;
 
-    printf("1\n");
 
     if ((lineCopy = malloc((strlen(line)+1) * sizeof(char))) == NULL)
     {
         yieldError("memoryAllocationFailed");
         return FALSE;
     }
-    printf("2\n");
       
     strcpy(lineCopy,line);
     
-    printf("lineCopy = %s\n",lineCopy);
 
     getLabelName(lineCopy,&labelName);
     strncpy(tempLabelName,labelName,MAX_LABEL_NAME);
     tempLabelName[strlen(labelName)] = '\0';
-    printf("lineCopy = %s\nLabelName = %s\n",lineCopy,labelName);
 
     type = getLabelType();
 
-    printf("label->name: %s !!!, type: %d\n", label->name, type);
     if(label == (Label *)NULL){
-        printf("3\n");
         if (type == DATA_SYMBOL || type == CODE_SYMBOL)
         {
             temp = malloc(sizeof(Label));
-            printf("4\n");
             if (temp != NULL)
             {
                 strncpy(temp->name, labelName, MAX_LABEL_NAME);
-                printf("5\n");
                 temp->address = (type == DATA_SYMBOL ? getDC() : getIC());
                 temp->next = labelsTableHead;
                 temp->type = type;
                 labelsTableHead = temp;
-                printf("6\n");
 
                 if (labelsTableHead){
-                    printf("7\n");
                     free(lineCopy);
-                    printf("7.1\n");
-                    printf("return true add label\n");
                     return TRUE;
                 }else{
                     yieldError("labelNotAdded", labelName);
@@ -136,17 +123,14 @@ int getLabelType(void){
 
     printf("inside getLabelType\n");
     word = strtok(NULL, " \n\t");
-    printf("word: %s\n", word);
 
     if (!strcmp(word, ".data") || !strcmp(word, ".string") || !strcmp(word, ".mat")) {
-        printf("DATA_SYMBOL!!!!\n");
         return DATA_SYMBOL;
     }else if (!strcmp(word, ".extern")) {
         return EXTERN_SYMBOL;
     } else if (!strcmp(word, ".entry")) {
         return ENTRY_SYMBOL;
     } else {
-        printf("CODE_SYMBOL!!!!\n");
         return CODE_SYMBOL;
     }
 }
@@ -157,8 +141,6 @@ void printLabelTable(Label *temp){
         return;
     }
     printLabelTable(temp->next);
-
-    printf("Address %4d | Name: %s\n",temp->address,temp->name);
 }
 
 Label *getLabelByName(char *name){
@@ -169,11 +151,9 @@ Label *getLabelByName(char *name){
     
     while (temp != NULL)
     {
-        printf("while, temp->name: %s, strlen(temp->name): %lu\n", temp->name, strlen(temp->name));
         if(!strcmp(temp->name,name)) return temp;
         temp = temp->next;
     }
-    printf("return NULL\n");
     return (Label *)NULL;
 }
 
@@ -216,28 +196,22 @@ Bool isUnresolvedLabel(char *line, char **labelVar){
             }
             strncpy(labelName,temp,(strlen(temp)-1));
             labelName[strlen(labelName)] = '\0';
-            printf("labelName = %s\n", labelName);
             trimWhiteSpaces(&labelName);
             if((label = getLabelByName(labelName)) == NULL){
                 free(lineCopy);
-                printf("not unresolved label\n");
                 return FALSE;
             }else{
                 if(label->address >=0){
                     yieldError("labelNameRedefined", label->name);
                     return FALSE;
                 }
-                printf("Label->Name = %s\n", label->name);
-                printf("1\n");
                 if((*labelVar = malloc(strlen(labelName)*sizeof(char))) == NULL){
                     yieldError("memoryAllocationFailed");
                     return FALSE;
                 }
 
                 strcpy(*labelVar, labelName);
-                printf("2\n");
                 free(lineCopy);
-                printf("3\n");
                 return TRUE;
             }
         }
@@ -260,5 +234,19 @@ void updateLabelsTableAddrs(void){
         }
         temp = temp->next;
     }
+}
+
+void freeLabelsTable(void){
+    Label *temp, *next = NULL;
+
+    temp = getLabelsTableHead();
+
+    while (next != NULL)
+    {
+        next = temp->next;
+        free(temp);
+        temp = next;
+    }
+    labelsTableHead = NULL;
 }
 
